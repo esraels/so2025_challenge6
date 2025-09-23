@@ -2,6 +2,8 @@
 - write in cpp:
     - initial implementation version:
     - write optimal version:
+        - speed
+        - memory
     - write generic version:
         - supports negative numbers.
         - beyond 0-999 which is INT_MIN <= x <= INT_MAX.
