@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 
@@ -42,6 +43,29 @@ void clearCounts() {
         counts[i] = 0;
     }
 }
+
+class Timer {
+    using time_t = std::chrono::high_resolution_clock::time_point;
+protected:
+    time_t m_timeStart;
+    long long m_timeElapsed;  //in milliseconds
+public:
+    Timer(): m_timeElapsed(0){}
+    ~Timer(){}
+    void start() {
+        m_timeStart = std::chrono::high_resolution_clock::now();
+    }
+    void stop() {
+        auto timeEnd = std::chrono::high_resolution_clock::now();
+        m_timeElapsed = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - m_timeStart).count();
+    }
+    auto getElapsed() {
+        return m_timeElapsed;
+    }
+    void printElapsed() {
+        cout << m_timeElapsed << " ms" << std::endl;
+    }
+};
 
 /* ===================================
  * funcA: Count and search
@@ -176,46 +200,20 @@ void funcE(){
         
         // --- count ahead the same numbers
         int j = i+1;
-        while (iCur == listN[j] && j < numCount) j++;
+        while ((iCur == listN[j]) & (j < numCount)) j++;
         auto const vCur = counts[ iCur ] += (j - i);
         i = j - 1;
 
-        //vMaxCount = (vMaxCount < vCur) ? vCur : vMaxCount;
+        // --- update searching info
         const int diffCount = vCur - vMaxCount;
-        //vMaxCount += (diffCount >= 0) ? diffCount : 0;
-        //vMaxCount += (diffCount < 0) ? 0 : diffCount;
-        //vMaxCount += ((diffCount < 0)-1) & diffCount;
-        //vMaxCount += ((vMaxCount < vCur)-1) & (vCur-vMaxCount);
-        vMaxCount += ((diffCount < 0)-1) & diffCount;
-        
-        //iMin = (diffCount == 0 && iCur < iMin) ? iCur : iMin;
-        //iMin += (diffCount == 0 && iCur - iMin < 0) ? iCur - iMin : 0;
-        //iMin += (diffCount != 0 || iCur - iMin >= 0) ? 0 : iCur - iMin;
-        //iMin += ((diffCount != 0 || (iCur-iMin) >= 0)-1) & (iCur-iMin);
-        //iMin += (((diffCount != 0) | (iCur >= iMin))-1) & (iCur-iMin);
         const int diffIdxMin = iCur - iMin;
-        iMin += (((diffCount != 0) | (diffIdxMin >= 0))-1) & diffIdxMin;
-        
-        //iMax = (diffCount == 0 && iCur > iMax) ? iCur : iMax;
-        //iMax += (diffCount == 0 && iCur > iMax) ? iCur - iMax : iMax - iMax;
-        //iMax += (diffCount == 0 && iCur > iMax) ? iCur - iMax : 0;
-        //iMax += (diffCount != 0 || (iCur-iMax) <= 0) ? 0 : (iCur-iMax);
-        //iMax += (((diffCount != 0) | ((iCur-iMax) <= 0))-1) & (iCur-iMax);
         const int diffIdxMax = iCur - iMax;
-        iMax += (((diffCount != 0) | (diffIdxMax <= 0))-1) & diffIdxMax;
+        const bool bCountsNotEq = (diffCount != 0);
 
-        // // --- update searching info
-        // if(vMaxCount < vCur) {
-        //     vMaxCount = vCur;
-        //     iMin = iMax = iCur;
-        // } else if (vMaxCount == vCur) {
-        //     if (iCur < iMin) {
-        //         iMin = iCur;
-        //     }
-        //     else if (iCur > iMax) {
-        //         iMax = iCur;
-        //     }
-        // }
+        vMaxCount += ((diffCount < 0)-1) & diffCount;
+        iMin += ((bCountsNotEq | (diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
+
     }
     cout << "Appearance Count: " << vMaxCount << endl;
     cout << "Numbers:" << endl;
@@ -228,20 +226,40 @@ void funcE(){
 
 int main() {
 
+    Timer timer;
+
     cout << "---func A: Result ---" << endl;
+    timer.start();
     funcA();
+    timer.stop();
+    cout << "\nExecution time: "; timer.printElapsed();
 
     cout << "\n---func B: Result ---" << endl;
+    timer.start();
     funcB();
+    timer.stop();
+    cout << "\nExecution time: "; timer.printElapsed();
 
     cout << "\n---func C: Result ---" << endl;
+    timer.start();
     funcC();
+    timer.stop();
+    cout << "\nExecution time: "; timer.printElapsed();
+
 
     cout << "\n---func D: Result ---" << endl;
+    timer.start();
     funcD();
+    timer.stop();
+    cout << "\nExecution time: "; timer.printElapsed();
+
 
     cout << "\n---func E: Result ---" << endl;
+    timer.start();
     funcE();
+    timer.stop();
+    cout << "\nExecution time: "; timer.printElapsed();
+
 
     cout << "\n--- finished! ---" << endl;
     return 0;
