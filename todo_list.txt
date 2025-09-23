@@ -1,0 +1,22 @@
+# TODO list:
+- write in cpp:
+    - initial implementation version:
+    - write optimal version:
+    - write generic version:
+        - supports negative numbers.
+        - beyond 0-999 which is INT_MIN <= x <= INT_MAX.
+    - accepts input from file.
+    - accepts input from stdin stream.
+    - benchmark performance:
+        - speed
+        - memory
+
+- write in other language:
+    - bash
+    - python
+    - batch
+    - ruby
+    - rust
+    - jscript
+    
+
