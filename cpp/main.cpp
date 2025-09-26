@@ -1,6 +1,8 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <cstdlib>
+#include <string>
 
 using namespace std;
 
@@ -43,10 +45,12 @@ void clearCounts(vector<int>& counts) {
 }
 
 class Timer {
+public:
     using time_t = std::chrono::high_resolution_clock::time_point;
+    using duration_t = long long;
 protected:
     time_t m_timeStart;
-    long long m_timeElapsed;  //in milliseconds
+    duration_t m_timeElapsed;  //in milliseconds
 public:
     Timer(): m_timeElapsed(0){}
     ~Timer(){}
@@ -220,11 +224,13 @@ void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 
 using func_t = void(*)(const vector<int>&, vector<int>&, vector<int>&);
 
-int main() {
+
+void smallTest() {
 
     Timer timer;
     vector<int> counts(1000, 0);
     vector<int> results(1000, 0);
+    vector<int> expected;
 
     struct {
         const char* name;
@@ -236,9 +242,6 @@ int main() {
         {"funcD", funcD},
         {"funcE", funcE},
     };
-
-    //TODO: generate own list of random numbers.
-
 
     // --- test candidate functions
     for(auto& f : listFuncToTest) {
@@ -256,11 +259,128 @@ int main() {
         cout << "---" << f.name << ": Result ---" << endl;
         cout << "duration: " << timer.getElapsed() << " ms" << endl;
         cout << "result count: " << results.size() << endl;
-        cout << "result numbers: "; for(auto v : results) { cout << v << " "; };
+        cout << "result numbers: "; for(auto v : results) { cout << v << " "; }; cout << endl;
+
+        if(f.func == funcA) {
+            expected = results;
+        } else {
+            cout << "result matched: " << (expected == results ? "true" : "false") << endl;
+        }
+        
         cout << "\n\n";
         
     }
 
     cout << "\n--- finished! ---" << endl;
+}
+
+int main(){
+
+    smallTest();
+
+    return 0;
+
+    Timer timer;
+    vector<int> counts(1000, 0);
+    vector<int> results(1000, 0);
+    vector<int> expected;
+
+    struct {
+        const char* name;
+        func_t func;
+    } listFuncToTest[] = {
+        {"funcA", funcA},
+        {"funcB", funcB},
+        {"funcC", funcC},
+        {"funcD", funcD},
+        {"funcE", funcE},
+    };
+
+    //TODO: generate own list of random numbers.
+    vector<vector<int>> list10k(100, vector<int>(10'000, 0));
+    vector<vector<int>> list100k(100, vector<int>(100'000, 0));
+    vector<vector<int>> list1M(5, vector<int>(1'000'000, 0));
+
+    auto randomPure = [](auto& listN) {
+        for(auto& list : listN) {
+            for(auto& v : list) {
+                v = rand() % 1000;
+            }
+        }
+    };
+
+    decltype(Timer().getElapsed()) dur;
+
+    vector<vector<vector<int>>*> listTests = { &list10k, &list100k, &list1M };
+    struct testInfo {
+        const char* name;
+        vector<vector<int>>* listTest;
+        vector<Timer::duration_t> listDurations;
+    } listTestInfo[] = {
+        {"10k", &list10k},
+        {"100k", &list100k},
+        {"1M",  &list1M},
+    };
+
+    for(auto& test : listTestInfo){
+        randomPure(*test.listTest);
+        for(auto& f : listFuncToTest) {
+            Timer::duration_t totalDur = 0;
+            cout << "\n --- Testing " << f.name << " with " << test.name << " ---" << endl;
+            for(auto& listNums : *test.listTest) {
+                //if(totalDur = -1) continue;  // skip test if prev result(s) was unmatched.
+
+                // --- prepare input/output containers.
+                std::fill(counts.begin(), counts.end(), 0); 
+                results.clear();
+
+                // --- execute process
+                timer.start();
+                f.func(listNums, counts, results);
+                timer.stop();
+
+                // --- accumulate execution time.
+                totalDur += timer.getElapsed();
+
+                // --- check if correct result.
+                if(f.func == funcA) {
+                    expected = results;
+                } else if(expected != results) {
+                    totalDur = -1;
+                    cout << "unmatched result occurred!" << endl;
+                    cout << "expected: count(" << expected.size() << ") " << endl; 
+                    for (int i = 0; i < 5 && i < expected.size(); i++) {
+                        cout << expected[i] << " ";
+                        cout << (expected.size() > 5 ? "..." : "") << endl;
+                    }
+                    cout << "result: count(" << results.size() << ") " << endl; 
+                    for (int i = 0; i < 5 && i < results.size(); i++) {
+                        cout << results[i] << " ";
+                        cout << (results.size() > 5 ? "..." : "") << endl;
+                    }
+                    break;
+                }
+            }
+            cout << "total duration: " << totalDur << " ms" << endl;
+            test.listDurations.push_back(totalDur);
+            
+        }
+    }
+
+    // // --- print results column labels
+    // //cout << "            "; 
+    // for(auto& t : listTestInfo) cout << "| " << t.name ;  
+    // cout << endl;
+
+    // // --- print func names and durations
+    // //for(auto& f : listFuncToTest){
+    // for (int f = 0; f < sizeof(listFuncToTest)/sizeof(listFuncToTest[0]); f++) {
+    //     auto& func = listFuncToTest[f];
+        
+    //     cout << func.name << " | ";
+    // }
+
+    cout << "\n--- finished! ---" << endl;
+
     return 0;
 }
