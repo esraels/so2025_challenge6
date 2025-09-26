@@ -1,6 +1,6 @@
 # TODO list:
 - write in cpp:
-    - initial implementation version:
+    [ok]- initial implementation version:
     - write optimal version:
         - speed
         - memory
