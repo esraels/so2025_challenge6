@@ -61,14 +61,14 @@ public:
         return m_timeElapsed;
     }
     void printElapsed() {
-        cout << m_timeElapsed << " ms" << std::endl;
+        cout << m_timeElapsed << " ms";
     }
 };
 
 /* ===================================
  * funcA: Count and search
 --------------------------------------*/
-void funcA(const vector<int>& listN, vector<int>& counts){
+void funcA(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMaxCount = 0, vMaxCount = 0; 
     // --- count
     const size_t numItems = listN.size();
@@ -79,20 +79,19 @@ void funcA(const vector<int>& listN, vector<int>& counts){
             iMaxCount = listN[i];
         }
     }
-    cout << "Appearance Count: " << vMaxCount << endl;
-    cout << "Numbers:" << endl;
-    // --- search and print the results
+    // --- search and get the results
     const size_t numCounts = counts.size();
     for(size_t i = 0; i < numCounts; i++){
         if ( counts[i] != vMaxCount ) continue;
-        cout << "" << i << ", ";
+        results.push_back(i);
     }
+    
 }
 
 /* ===================================
  * funcB: Count and search from index iMax.
 --------------------------------------*/
-void funcB(const vector<int>& listN, vector<int>& counts){
+void funcB(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     
     int iMin = 0, vMaxCount = 0;  //
     // --- count
@@ -107,21 +106,20 @@ void funcB(const vector<int>& listN, vector<int>& counts){
             iMin = iCur;
         }
     }
-    cout << "Appearance Count: " << vMaxCount << endl;
-    cout << "Numbers:" << endl;
-    // --- search and print the results
+    // --- search and get the results
     const size_t numCounts = counts.size();
     for(size_t i = iMin; i < numCounts; i++){
         if (counts[i] != vMaxCount) continue;
-        cout << "" << i << ", ";
+        results.push_back(i);
     }
+    
 }
 
 
 /* ===================================
  * funcC: Count and search from iMin to iMax indices
  -------------------------------------*/
-void funcC(const vector<int>& listN, vector<int>& counts){
+void funcC(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMin = 0, iMax = 0, vMaxCount = 0;
     const size_t numItems = listN.size();
     for(size_t i = 0; i < numItems; i++){
@@ -139,20 +137,19 @@ void funcC(const vector<int>& listN, vector<int>& counts){
             }
         }
     }
-    cout << "Appearance Count: " << vMaxCount << endl;
-    cout << "Numbers:" << endl;
-    // --- search and print the results
+    // --- search and get the results
     for(size_t i = iMin; i <= iMax; i++){
         if (counts[i] != vMaxCount) continue;
-        cout << "" << i << ", ";
+        results.push_back(i);
     }
+    
 }
 
 /* ===================================
  * funcD: Count and search from iMin to iMax indices
  *  + take advantage of consecutive same numbers.
  -------------------------------------*/
-void funcD(const vector<int>& listN, vector<int>& counts){
+void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMin = 0, iMax = 0, vMaxCount = 0;
     const size_t numItems = listN.size();
     for(size_t i = 0; i < numItems; i++){
@@ -177,13 +174,12 @@ void funcD(const vector<int>& listN, vector<int>& counts){
             }
         }
     }
-    cout << "Appearance Count: " << vMaxCount << endl;
-    cout << "Numbers:" << endl;
-    // --- search and print the results
+    // --- search and get the results
     for(size_t i = iMin; i <= iMax; i++){
         if (counts[i] != vMaxCount) continue;
-        cout << "" << i << ", ";
+        results.push_back(i);
     }
+    
 }
 
 /* ===================================
@@ -191,7 +187,7 @@ void funcD(const vector<int>& listN, vector<int>& counts){
  *  + take advantage of consecutive same numbers
  *  + convert to lesser branch mispredictions.
  -------------------------------------*/
-void funcE(const vector<int>& listN, vector<int>& counts){
+void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMin = 0, iMax = 0, vMaxCount = 0;
     const size_t numItems = listN.size();
     for(size_t i = 0; i < numItems; i++){
@@ -214,57 +210,56 @@ void funcE(const vector<int>& listN, vector<int>& counts){
         iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
 
     }
-    cout << "Appearance Count: " << vMaxCount << endl;
-    cout << "Numbers:" << endl;
     // --- search and print the results
     for(size_t i = iMin; i <= iMax; i++){
         if (counts[i] != vMaxCount) continue;
-        cout << "" << i << ", ";
+        results.push_back(i);
     }
+    
 }
+
+using func_t = void(*)(const vector<int>&, vector<int>&, vector<int>&);
 
 int main() {
 
     Timer timer;
     vector<int> counts(1000, 0);
+    vector<int> results(1000, 0);
 
-    cout << "---func A: Result ---" << endl;
-    clearCounts(counts);
-    timer.start();
-    funcA(listNums, counts);
-    timer.stop();
-    cout << "\nExecution time: "; timer.printElapsed();
+    struct {
+        const char* name;
+        func_t func;
+    } listFuncToTest[] = {
+        {"funcA", funcA},
+        {"funcB", funcB},
+        {"funcC", funcC},
+        {"funcD", funcD},
+        {"funcE", funcE},
+    };
 
-    cout << "\n---func B: Result ---" << endl;
-    clearCounts(counts);
-    timer.start();
-    funcB(listNums, counts);
-    timer.stop();
-    cout << "\nExecution time: "; timer.printElapsed();
-
-    cout << "\n---func C: Result ---" << endl;
-    clearCounts(counts);
-    timer.start();
-    funcC(listNums, counts);
-    timer.stop();
-    cout << "\nExecution time: "; timer.printElapsed();
+    //TODO: generate own list of random numbers.
 
 
-    cout << "\n---func D: Result ---" << endl;
-    clearCounts(counts);
-    timer.start();
-    funcD(listNums, counts);
-    timer.stop();
-    cout << "\nExecution time: "; timer.printElapsed();
+    // --- test candidate functions
+    for(auto& f : listFuncToTest) {
+        
+        // --- prepare input/output containers.
+        std::fill(counts.begin(), counts.end(), 0); 
+        results.clear();
 
+        // --- execute process
+        timer.start();
+        f.func(listNums, counts, results);
+        timer.stop();
 
-    cout << "\n---func E: Result ---" << endl;
-    clearCounts(counts);
-    timer.start();
-    funcE(listNums, counts);
-    timer.stop();
-    cout << "\nExecution time: "; timer.printElapsed();
-
+        // --- print results
+        cout << "---" << f.name << ": Result ---" << endl;
+        cout << "duration: " << timer.getElapsed() << " ms" << endl;
+        cout << "result count: " << results.size() << endl;
+        cout << "result numbers: "; for(auto v : results) { cout << v << " "; };
+        cout << "\n\n";
+        
+    }
 
     cout << "\n--- finished! ---" << endl;
     return 0;
