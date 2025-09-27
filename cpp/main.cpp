@@ -367,18 +367,24 @@ int main(){
         }
     }
 
-    // // --- print results column labels
-    // //cout << "            "; 
-    // for(auto& t : listTestInfo) cout << "| " << t.name ;  
-    // cout << endl;
-
-    // // --- print func names and durations
-    // //for(auto& f : listFuncToTest){
-    // for (int f = 0; f < sizeof(listFuncToTest)/sizeof(listFuncToTest[0]); f++) {
-    //     auto& func = listFuncToTest[f];
+    // --- print results column labels
+    cout << "\n\n | name "; 
+    for(auto& t : listTestInfo) cout << "| " << t.name ;  
+    cout << endl;
+    cout << " | --- | --- | --- | --- |" << endl;
+        // --- print func names and durations
+        //for(auto& f : listFuncToTest){
+        for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
+    {
+        auto& func = listFuncToTest[f];
         
-    //     cout << func.name << " | ";
-    // }
+        cout << " | " << func.name << " | ";
+        for(auto& test : listTestInfo) {
+            auto dur = test.listDurations[f];
+            cout << test.listDurations[f] << " us | ";
+        }
+        cout << endl;
+    }
 
     cout << "\n--- finished! ---" << endl;
 
