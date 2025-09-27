@@ -276,9 +276,9 @@ void smallTest() {
 
 int main(){
 
-    smallTest();
+    //smallTest();
 
-    return 0;
+    //return 0;
 
     Timer timer;
     vector<int> counts(1000, 0);
