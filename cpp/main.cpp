@@ -324,11 +324,13 @@ int main(){
 
     for(auto& test : listTestInfo){
         randomPure(*test.listTest);
+        vector<vector<int>> listResult, listExpected;
         for(auto& f : listFuncToTest) {
             Timer::duration_t totalDur = 0;
+            listResult.clear();
+            listExpected.clear();
             cout << "\n --- Testing " << f.name << " with " << test.name << " ---" << endl;
             for(auto& listNums : *test.listTest) {
-                //if(totalDur = -1) continue;  // skip test if prev result(s) was unmatched.
 
                 // --- prepare input/output containers.
                 std::fill(counts.begin(), counts.end(), 0); 
@@ -341,29 +343,21 @@ int main(){
 
                 // --- accumulate execution time.
                 totalDur += timer.getElapsed();
+                listResult.push_back(results);
 
-                // --- check if correct result.
-                if(f.func == funcA) {
-                    expected = results;
-                } else if(expected != results) {
-                    totalDur = -1;
-                    cout << "unmatched result occurred!" << endl;
-                    cout << "expected: count(" << expected.size() << ") " << endl; 
-                    for (int i = 0; i < 5 && i < expected.size(); i++) {
-                        cout << expected[i] << " ";
-                        cout << (expected.size() > 5 ? "..." : "") << endl;
-                    }
-                    cout << "result: count(" << results.size() << ") " << endl; 
-                    for (int i = 0; i < 5 && i < results.size(); i++) {
-                        cout << results[i] << " ";
-                        cout << (results.size() > 5 ? "..." : "") << endl;
-                    }
-                    break;
-                }
             }
+                   
+            if (f.func == funcA) {
+                cout << "get funcA result as basis." << endl;
+                listExpected = listResult;
+            } else if (listExpected != listResult) {
+                cout << "result not matched!" << endl;
+                totalDur = -1;
+            }
+
             cout << "total duration: " << totalDur << " ms" << endl;
             test.listDurations.push_back(totalDur);
-            
+
         }
     }
 
