@@ -456,6 +456,7 @@ int main(){
     // }
 
     // --- print average execution time summary table(in markdown syntax).
+    cout << "\n\n # Summary: Average execution time." << endl;
     cout << "\n\n | name "; 
     for(auto& t : listTestInfo) cout << "| " << t.name ;  
     cout << endl;
