@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdlib>
 #include <string>
+#include <iomanip>
 
 using namespace std;
 
@@ -325,11 +326,13 @@ int main(){
     for(auto& test : listTestInfo){
         randomPure(*test.listTest);
         vector<vector<int>> listResult, listExpected;
+        listExpected.clear();
+        test.listDurations.clear();
         for(auto& f : listFuncToTest) {
             Timer::duration_t totalDur = 0;
             listResult.clear();
-            listExpected.clear();
             cout << "\n --- Testing " << f.name << " with " << test.name << " ---" << endl;
+            cout << "dur list: ";
             for(auto& listNums : *test.listTest) {
 
                 // --- prepare input/output containers.
@@ -342,40 +345,70 @@ int main(){
                 timer.stop();
 
                 // --- accumulate execution time.
+                cout << timer.getElapsed() << "us, ";
                 totalDur += timer.getElapsed();
                 listResult.push_back(results);
 
             }
+            cout << endl;
                    
             if (f.func == funcA) {
                 cout << "get funcA result as basis." << endl;
                 listExpected = listResult;
             } else if (listExpected != listResult) {
-                cout << "result not matched!" << endl;
                 totalDur = -1;
+
+                cout << "result not matched!" << endl;
+                cout << " >> expected result: ";
+                for(auto listNums : listExpected) {
+                    cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
+                }
+                cout << endl;
+                cout << " >> actual result: ";
+                for(auto listNums : listResult) {
+                    cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
+                }
+                cout << endl;
+                break;
             }
 
-            cout << "total duration: " << totalDur << " ms" << endl;
+            cout << "total duration: " << totalDur << " us" << endl;
             test.listDurations.push_back(totalDur);
 
         }
     }
 
-    // --- print results column labels
+    // --- print results summary table(in markdown syntax).
     cout << "\n\n | name "; 
     for(auto& t : listTestInfo) cout << "| " << t.name ;  
     cout << endl;
     cout << " | --- | --- | --- | --- |" << endl;
-        // --- print func names and durations
-        //for(auto& f : listFuncToTest){
-        for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
+    for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
     {
         auto& func = listFuncToTest[f];
         
         cout << " | " << func.name << " | ";
         for(auto& test : listTestInfo) {
             auto dur = test.listDurations[f];
-            cout << test.listDurations[f] << " us | ";
+            cout << dur << " us | ";
+        }
+        cout << endl;
+    }
+
+    // --- print average execution time summary table(in markdown syntax).
+    cout << "\n\n | name "; 
+    for(auto& t : listTestInfo) cout << "| " << t.name ;  
+    cout << endl;
+    cout << " | --- | --- | --- | --- |" << endl;
+    //cout << setprecision(2) << fixed;
+    for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
+    {
+        auto& func = listFuncToTest[f];
+        
+        cout << " | " << func.name << " | ";
+        for(auto& test : listTestInfo) {
+            auto avgDur = test.listDurations[f] / test.listTest->size();
+            cout << avgDur << " us | ";
         }
         cout << endl;
     }
