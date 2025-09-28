@@ -162,7 +162,8 @@ void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
         
         // --- skip the same numbers
         int j = i+1;
-        while (iCur == listN[j] && j < numItems) j++;
+        //while (iCur == listN[j] && j < numItems) j++;
+        while ((iCur == listN[j]) & (j < numItems)) j++;
         auto const vCur = counts[ iCur ] += (j - i);
         i = j - 1;
 
@@ -215,10 +216,72 @@ void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
         iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
 
     }
-    // --- search and print the results
+    // --- search and get the results
     for(size_t i = iMin; i <= iMax; i++){
         if (counts[i] != vMaxCount) continue;
         results.push_back(i);
+    }
+    
+}
+
+void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
+    size_t iMin = 0, iMax = 0;
+    int vMaxCount = 0;
+    const size_t numItems = listN.size();
+    for(size_t i = 0; i < numItems; i++){
+        const size_t iCur = listN[i];
+        
+        // --- count ahead the same numbers
+        // size_t j = i+1;
+        // while ((iCur == listN[j]) & (j < numItems)) j++;
+        // auto const vCur = counts[ iCur ] += (j - i);
+        // i = j - 1;
+        auto const vCur = ++counts[ iCur ];
+
+        // --- update searching info
+        const int diffCount = vCur - vMaxCount;
+        const long int diffIdxMin = iCur - iMin;
+        const long int diffIdxMax = iCur - iMax;
+        const bool bCountsNotEq = (diffCount != 0);
+
+        vMaxCount += ((diffCount < 0)-1) & diffCount;
+        iMin += ((bCountsNotEq | (diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
+
+        // --- update searching info
+        // if(vMaxCount < vCur) {
+        //     vMaxCount = vCur;
+        //     iMin = iMax = iCur;
+        // } else if (vMaxCount == vCur) {
+        //     if (iCur < iMin) {
+        //         iMin = iCur;
+        //     }
+        //     else if (iCur > iMax) {
+        //         iMax = iCur;
+        //     }
+        // }
+
+    }
+    // --- search and get the results
+
+    const size_t numCounts = counts.size();
+    //for(size_t i = 0; i <= numCounts-1; i++){
+    //iMin = 0;
+    //iMax = numCounts - 1;
+    for(size_t i = iMin; i <= iMax; i++){
+        //if (counts[i] != vMaxCount) continue;
+        if (counts.at(i) != vMaxCount) continue;
+        results.push_back(i);
+    }
+
+    size_t iCur = -1;
+    if (iMin < 0) {
+        cout << "iMin < 0 at iCur=" << iCur << endl;
+        exit(1);
+    }
+    if (iMax >= counts.size()) {
+        cout << "iMax >= counts.size() at iCur=" << iCur << endl;
+        exit(2);
     }
     
 }
@@ -242,6 +305,7 @@ void smallTest() {
         {"funcC", funcC},
         {"funcD", funcD},
         {"funcE", funcE},
+        {"funcF", funcF},
     };
 
     // --- test candidate functions
@@ -295,13 +359,15 @@ int main(){
         {"funcC", funcC},
         {"funcD", funcD},
         {"funcE", funcE},
+        {"funcF", funcF},
     };
 
     //TODO: generate own list of random numbers.
     vector<vector<int>> list10k(100, vector<int>(10'000, 0));
     vector<vector<int>> list100k(100, vector<int>(100'000, 0));
-    vector<vector<int>> list1M(5, vector<int>(1'000'000, 0));
+    vector<vector<int>> list1M(10, vector<int>(1'000'000, 0));
 
+    srand(time(0));
     auto randomPure = [](auto& listN) {
         for(auto& list : listN) {
             for(auto& v : list) {
