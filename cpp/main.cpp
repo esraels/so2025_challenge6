@@ -317,16 +317,18 @@ void smallTest() {
 }
 
 void printResultDetails(const vector<vector<int>>& listExpected, const vector<vector<int>>& listResult) {
-    cout << " >> expected result: ";
+    cout << " - **expected result**: " << endl;
+    cout << "    ```c++" << endl << "    ";
     for(auto listNums : listExpected) {
         cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
     }
-    cout << endl;
-    cout << " >> actual result: ";
+    cout << endl << "    ```" << endl;
+    cout << " - **actual result**: " << endl;
+    cout << "    ```c++" << endl << "    ";
     for(auto listNums : listResult) {
         cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
     }
-    cout << endl;
+    cout << endl << "    ```" << endl;
 }
 
 int main(){
@@ -394,8 +396,8 @@ int main(){
         for(auto& f : listFuncToTest) {
             Timer::duration_t totalDur = 0;
             listResult.clear();
-            cout << "\n --- Testing " << f.name << " with " << test.name << " ---" << endl;
-            cout << "dur list: ";
+            cout << "\n ## Testing `" << f.name << "` with `" << test.name << "`:" << endl;
+            cout << "- dur list: " << endl << "    ```c++" << endl  << "    ";
             for(auto& listNums : *test.listTest) {
 
                 // --- prepare input/output containers.
@@ -413,23 +415,25 @@ int main(){
                 listResult.push_back(results);
 
             }
-            cout << endl;
+            cout << endl << "    ```" << endl;
                    
             if (f.func == funcA) {
-                cout << "get funcA result as basis." << endl;
+                cout << "- get funcA result as basis." << endl;
                 listExpected = listResult;
             } else if (listExpected != listResult) {
                 totalDur = -1;
-                cout << "result not matched!" << endl;
+                cout << "- result not matched!" << endl;
                 // printResultDetails(listExpected, listResult);
                 // break;
             }
 
-            cout << "Result comparison:" << endl;
+            cout << "- ### total duration: " << totalDur << " us" << endl;
+            test.listDurations.push_back(totalDur);
+
+            cout << "### Result comparison:" << endl;
             printResultDetails(listExpected, listResult);
             
-            cout << "total duration: " << totalDur << " us" << endl;
-            test.listDurations.push_back(totalDur);
+            
 
         }
     }
