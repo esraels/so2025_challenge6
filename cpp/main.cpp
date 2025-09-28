@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <string>
 #include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
@@ -160,10 +161,9 @@ void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     for(size_t i = 0; i < numItems; i++){
         auto const iCur = listN[i];
         
-        // --- skip the same numbers
+        // --- count ahead consecutive same numbers
         int j = i+1;
-        //while (iCur == listN[j] && j < numItems) j++;
-        while ((iCur == listN[j]) & (j < numItems)) j++;
+        while (iCur == listN[j] && j < numItems) j++;
         auto const vCur = counts[ iCur ] += (j - i);
         i = j - 1;
 
@@ -194,28 +194,151 @@ void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
  *  + convert to lesser branch mispredictions.
  -------------------------------------*/
 void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
-    int iMin = 0, iMax = 0, vMaxCount = 0;
+    int iMin = 0, iMax = 0;
+    int vMaxCount = 0;
     const size_t numItems = listN.size();
     for(size_t i = 0; i < numItems; i++){
         auto const iCur = listN[i];
         
-        // --- count ahead the same numbers
+        // --- count ahead consecutive same numbers
         int j = i+1;
-        while ((iCur == listN[j]) & (j < numItems)) j++;
+        while (iCur == listN[j] && j < numItems) j++;
         auto const vCur = counts[ iCur ] += (j - i);
         i = j - 1;
+
+        //auto const vCur = ++counts[ iCur ];
+
+        // // --- update searching info
+        // const int diffCount = vCur - vMaxCount;
+        // const int diffIdxMin = iCur - iMin;
+        // const int diffIdxMax = iCur - iMax;
+        // const bool bCountsNotEq = (diffCount != 0);
+
+        // vMaxCount += ((diffCount < 0)-1) & diffCount;
+        // iMin += ((bCountsNotEq | (diffIdxMin >= 0))-1) & diffIdxMin;
+        // iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
 
         // --- update searching info
         const int diffCount = vCur - vMaxCount;
         const int diffIdxMin = iCur - iMin;
         const int diffIdxMax = iCur - iMax;
-        const bool bCountsNotEq = (diffCount != 0);
+        //vMaxCount += (0 < diffCount) ? diffCount : 0 ;
+        vMaxCount += ((diffCount <= 0)-1) & diffCount;
+        //iMin += (0 < diffCount) ? diffIdxMin : (diffCount == 0) && (diffIdxMin < 0) ? diffIdxMin: 0;
+        //iMax += (0 < diffCount) ? diffIdxMax : (diffCount == 0) && (diffIdxMax > 0) ? diffIdxMax: 0;
+        //iMin += (0 < diffCount) || ((diffCount == 0) && (diffIdxMin < 0)) ? diffIdxMin : 0;
+        //iMax += (0 < diffCount) || ((diffCount == 0) && (diffIdxMax > 0)) ? diffIdxMax : 0;
+        //iMin += !((0 < diffCount) || ((diffCount == 0) && (diffIdxMin < 0))) ? 0 : diffIdxMin;
+        //iMax += !((0 < diffCount) || ((diffCount == 0) && (diffIdxMax > 0))) ? 0 : diffIdxMax;
 
-        vMaxCount += ((diffCount < 0)-1) & diffCount;
-        iMin += ((bCountsNotEq | (diffIdxMin >= 0))-1) & diffIdxMin;
-        iMax += ((bCountsNotEq | (diffIdxMax <= 0))-1) & diffIdxMax;
+        // iMin += ((0 >= diffCount) && ((diffCount != 0) || (diffIdxMin >= 0))) ? 0 : diffIdxMin;
+        // iMax += ((0 >= diffCount) && ((diffCount != 0) || (diffIdxMax <= 0))) ? 0 : diffIdxMax;
+
+        
+        //A = 0 < d
+        //B = d == 0
+        //C = d < 0
+        //1 = A + B + C
+        //0 = (A + B + C)'
+        //0 = A'B'C'
+        //1C' = (A + B + C)C'
+        //C' = (A + B)C'
+
+        // C = A'B'
+        // C'C = A'B'C' = 0
+        // 0 = A'B'C' check
+
+        // C + 0 = C + (A'B'C')   X
+        // C = (C + A'B')(C + C') X
+        // C = (C + A'B')         X
+        
+        //C = A'B'
+        //C' = (A'B')'
+        //   = A + B
+
+        //D = i < 0
+        //m = A+(BD)            => (0 < d) | (d == 0 & i < 0)
+        //  = (A+B)(A+D)        => (0 <= d) & (0 < d | i < 0)
+        //  = C'(A+D)           => ~(d < 0) & (0 < d | i < 0)
+
+        //m  = A+(BD)
+        //m' = A'(B'+D')
+        //   = A'B' + A'D'
+        //   = C + A'D'               correct
+
+        //   = (C + A')(C + D')
+        //   = (C + (B'C')')(C + D')
+        //   = (C + (B+C))(C + D')
+        //   = (C + B)(C + D')
+        //   = C + BD'
+
+        //m' = C + (A+D)'       
+        //   = C + A'D'         
+        //   = (C + A')(C + D') 
+        //   = (C+(C+B))(C+D')
+        //   = (C+B)(C+D')
+        //   = C + BD'          
+        
+        //E = j > 0
+        //M = A+(BE)      doing the same proof as above for m.
+        //  = C + BE'   => (d < 0) | (d == 0 & i <= 0)
+
+        //m' = A'(B'+D')
+        //iMin += ((0 >= diffCount) && ((diffCount != 0) || (diffIdxMin >= 0))) ? 0 : diffIdxMin;
+        //iMax += ((0 >= diffCount) && ((diffCount != 0) || (diffIdxMax <= 0))) ? 0 : diffIdxMax;
+
+        //m'= A'B' + A'D'
+        //iMin += ((0 >= diffCount) && (diffCount != 0)) || ((0 >= diffCount) && (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        //iMax += ((0 >= diffCount) && (diffCount != 0)) || ((0 >= diffCount) && (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+        
+        //m'= C + A'D'
+        //iMin += (0 > diffCount) || ((0 >= diffCount) && (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        //iMax += (0 > diffCount) || ((0 >= diffCount) && (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        // rearrange vars
+        //iMin += (diffCount < 0) || ((diffCount <= 0) && (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        //iMax += (diffCount < 0) || ((diffCount <= 0) && (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        //m = (C + A')(C + D')
+        //iMin += ((diffCount < 0) ||(diffCount <= 0)) && ((diffCount < 0) || (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        //iMax += ((diffCount < 0) ||(diffCount <= 0)) && ((diffCount < 0) || (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+        
+        //m = (C + (C+B))(C + D')
+        // iMin += ((diffCount < 0) ||(diffCount < 0 || diffCount == 0)) && ((diffCount < 0) || (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        // iMax += ((diffCount < 0) ||(diffCount < 0 || diffCount == 0)) && ((diffCount < 0) || (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        //m = (C + B)(C + D')
+        // iMin += (diffCount < 0 || diffCount == 0) && ((diffCount < 0) || (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        // iMax += (diffCount < 0 || diffCount == 0) && ((diffCount < 0) || (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        //m = C + BD'
+        //iMin += (diffCount < 0 || (diffCount == 0 && diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        //iMax += (diffCount < 0 || (diffCount == 0 && diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        // funny, this one failed earlier but now works. it's just the same with (m = C + BD').
+        // iMin += (diffCount < 0) || ((diffCount == 0) && (diffIdxMin >= 0)) ? 0 : diffIdxMin;
+        // iMax += (diffCount < 0) || ((diffCount == 0) && (diffIdxMax <= 0)) ? 0 : diffIdxMax;
+
+        // optimize arithmetic operations
+        iMin += ((diffCount < 0 || (diffCount == 0 && diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((diffCount < 0 || (diffCount == 0 && diffIdxMax <= 0))-1) & diffIdxMax;
+
+
+        // if(vMaxCount < vCur) {
+        //     vMaxCount = vCur;
+        //     iMin = iMax = iCur;
+        // } else if (vMaxCount == vCur) {
+        //     if (iCur < iMin) {
+        //         iMin = iCur;
+        //     }
+        //     else if (iCur > iMax) {
+        //         iMax = iCur;
+        //     }
+        // }        
+
 
     }
+    
     // --- search and get the results
     for(size_t i = iMin; i <= iMax; i++){
         if (counts[i] != vMaxCount) continue;
@@ -231,7 +354,7 @@ void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     for(size_t i = 0; i < numItems; i++){
         const size_t iCur = listN[i];
         
-        // --- count ahead the same numbers
+        // --- count ahead consecutive same numbers
         // size_t j = i+1;
         // while ((iCur == listN[j]) & (j < numItems)) j++;
         // auto const vCur = counts[ iCur ] += (j - i);
@@ -264,7 +387,7 @@ void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     }
     // --- search and get the results
 
-    const size_t numCounts = counts.size();
+    //const size_t numCounts = counts.size();
     //for(size_t i = 0; i <= numCounts-1; i++){
     //iMin = 0;
     //iMax = numCounts - 1;
@@ -272,16 +395,6 @@ void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
         //if (counts[i] != vMaxCount) continue;
         if (counts.at(i) != vMaxCount) continue;
         results.push_back(i);
-    }
-
-    size_t iCur = -1;
-    if (iMin < 0) {
-        cout << "iMin < 0 at iCur=" << iCur << endl;
-        exit(1);
-    }
-    if (iMax >= counts.size()) {
-        cout << "iMax >= counts.size() at iCur=" << iCur << endl;
-        exit(2);
     }
     
 }
@@ -339,6 +452,19 @@ void smallTest() {
     cout << "\n--- finished! ---" << endl;
 }
 
+void printResultDetails(const vector<vector<int>>& listExpected, const vector<vector<int>>& listResult) {
+    cout << " >> expected result: ";
+    for(auto listNums : listExpected) {
+        cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
+    }
+    cout << endl;
+    cout << " >> actual result: ";
+    for(auto listNums : listResult) {
+        cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
+    }
+    cout << endl;
+}
+
 int main(){
 
     //smallTest();
@@ -375,8 +501,14 @@ int main(){
             }
         }
     };
-
-    decltype(Timer().getElapsed()) dur;
+    auto randomSorted = [](auto& listN) {
+        for(auto& list : listN) {
+            for(auto& v : list) {
+                v = rand() % 1000;
+            }
+            sort(list.begin(), list.end());
+        }
+    };
 
     vector<vector<vector<int>>*> listTests = { &list10k, &list100k, &list1M };
     struct testInfo {
@@ -390,7 +522,8 @@ int main(){
     };
 
     for(auto& test : listTestInfo){
-        randomPure(*test.listTest);
+        //randomPure(*test.listTest);
+        randomSorted(*test.listTest);
         vector<vector<int>> listResult, listExpected;
         listExpected.clear();
         test.listDurations.clear();
@@ -423,43 +556,36 @@ int main(){
                 listExpected = listResult;
             } else if (listExpected != listResult) {
                 totalDur = -1;
-
                 cout << "result not matched!" << endl;
-                cout << " >> expected result: ";
-                for(auto listNums : listExpected) {
-                    cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
-                }
-                cout << endl;
-                cout << " >> actual result: ";
-                for(auto listNums : listResult) {
-                    cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
-                }
-                cout << endl;
-                break;
+                // printResultDetails(listExpected, listResult);
+                // break;
             }
 
+            cout << "Result comparison:" << endl;
+            printResultDetails(listExpected, listResult);
+            
             cout << "total duration: " << totalDur << " us" << endl;
             test.listDurations.push_back(totalDur);
 
         }
     }
 
-    // --- print results summary table(in markdown syntax).
-    cout << "\n\n | name "; 
-    for(auto& t : listTestInfo) cout << "| " << t.name ;  
-    cout << endl;
-    cout << " | --- | --- | --- | --- |" << endl;
-    for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
-    {
-        auto& func = listFuncToTest[f];
+    // // --- print results summary table(in markdown syntax).
+    // cout << "\n\n | name "; 
+    // for(auto& t : listTestInfo) cout << "| " << t.name ;  
+    // cout << endl;
+    // cout << " | --- | --- | --- | --- |" << endl;
+    // for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
+    // {
+    //     auto& func = listFuncToTest[f];
         
-        cout << " | " << func.name << " | ";
-        for(auto& test : listTestInfo) {
-            auto dur = test.listDurations[f];
-            cout << dur << " us | ";
-        }
-        cout << endl;
-    }
+    //     cout << " | " << func.name << " | ";
+    //     for(auto& test : listTestInfo) {
+    //         auto dur = test.listDurations[f];
+    //         cout << dur << " us | ";
+    //     }
+    //     cout << endl;
+    // }
 
     // --- print average execution time summary table(in markdown syntax).
     cout << "\n\n | name "; 
@@ -473,8 +599,13 @@ int main(){
         
         cout << " | " << func.name << " | ";
         for(auto& test : listTestInfo) {
-            auto avgDur = test.listDurations[f] / test.listTest->size();
-            cout << avgDur << " us | ";
+            if(test.listDurations[f] > 0){
+                auto avgDur = test.listDurations[f] / test.listTest->size();
+                cout << avgDur << " us | ";
+            } else {
+                cout << test.listDurations[f] << " us | ";
+            }
+            
         }
         cout << endl;
     }
