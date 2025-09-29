@@ -3,14 +3,24 @@
     [ok]- initial implementation version:
     - write optimal version:
         - speed
-        - memory
+            [ok]- implement different version with incremental optimization improvements.
+            - provide input data.
+                [ok]- random-pure
+                [ok]- sorted
+                - multiple answer
+                - multiple answer within controlled range of index.
+            - write all input data to file.
+            - write output to different files.
+            * - read input data from file.
+            - read input data from external stream.
+        - memory space.
     - write generic version:
         - supports negative numbers.
         - beyond 0-999 which is INT_MIN <= x <= INT_MAX.
     - accepts input from file.
     - accepts input from stdin stream.
     - benchmark performance:
-        - speed
+        [ok]- speed
         - memory
 
 - write in other language:
