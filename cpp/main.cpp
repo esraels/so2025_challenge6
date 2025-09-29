@@ -42,10 +42,6 @@ vector<int> listNums {
     
 };
 
-void clearCounts(vector<int>& counts) {
-    std::fill(counts.begin(), counts.end(), 0);
-}
-
 class Timer {
 public:
     using time_t = std::chrono::high_resolution_clock::time_point;
@@ -71,8 +67,22 @@ public:
     }
 };
 
+using func_t = void(*)(const vector<int>&, vector<int>&, vector<int>&);
+
+struct STestData {
+    const char* name;
+    vector<vector<int>>* listTest;
+    vector<Timer::duration_t> listDurations;
+};
+
+struct SFuncToTest {
+    const char* name;
+    func_t func;
+    const char* sDescription;
+};
+
 /* ===================================
- * funcA: Count and search
+ * funcA: Count and search with maxCount
 --------------------------------------*/
 void funcA(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMaxCount = 0, vMaxCount = 0; 
@@ -95,7 +105,7 @@ void funcA(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 }
 
 /* ===================================
- * funcB: Count and search from index iMax.
+ * funcB: Count and search maxcount from index iMin.
 --------------------------------------*/
 void funcB(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     
@@ -123,7 +133,7 @@ void funcB(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 
 
 /* ===================================
- * funcC: Count and search from iMin to iMax indices
+ * funcC: Count and search maxcount from iMin to iMax indices
  -------------------------------------*/
 void funcC(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMin = 0, iMax = 0, vMaxCount = 0;
@@ -152,7 +162,7 @@ void funcC(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 }
 
 /* ===================================
- * funcD: Count and search from iMin to iMax indices
+ * funcD: Count and search maxcount from iMin to iMax indices
  *  + take advantage of consecutive same numbers.
  -------------------------------------*/
 void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
@@ -189,9 +199,10 @@ void funcD(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 }
 
 /* ===================================
- * funcE: Count and search from iMin to iMax indices
+ * funcE: Count and search maxcount from iMin to iMax indices
  *  + take advantage of consecutive same numbers
- *  + convert to lesser branch mispredictions.
+ *  + less branches inside the loop by using &,| instead of &&,||
+ *     to lessen branch mispredictions.
  -------------------------------------*/
 void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
     int iMin = 0, iMax = 0;
@@ -210,9 +221,11 @@ void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
         const int diffCount = vCur - vMaxCount;
         const int diffIdxMin = iCur - iMin;
         const int diffIdxMax = iCur - iMax;
+        const bool bDiffCountNeg = diffCount < 0;
+        const bool bDiffCount0   = diffCount == 0;
         vMaxCount += ((diffCount <= 0)-1) & diffCount;
-        iMin += ((diffCount < 0 | (!diffCount & diffIdxMin >= 0))-1) & diffIdxMin;
-        iMax += ((diffCount < 0 | (!diffCount & diffIdxMax <= 0))-1) & diffIdxMax;
+        iMin += ((bDiffCountNeg | (bDiffCount0 & diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bDiffCountNeg | (bDiffCount0 & diffIdxMax <= 0))-1) & diffIdxMax;
 
     }
     
@@ -225,9 +238,9 @@ void funcE(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 }
 
 /* ===================================
- * funcF: Count and search from iMin to iMax indices
+ * funcF: Count and search maxcount from iMin to iMax indices
  *  + take advantage of consecutive same numbers
- *  + convert back branches(&&,||) on conditions expression
+ *  ? convert back branches(&&,||) on conditions expression
  *    because surprisingly, it is sometimes faster than funcE
  *    (I'm still not sure why.)
  -------------------------------------*/
@@ -248,9 +261,11 @@ void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
         const int diffCount = vCur - vMaxCount;
         const int diffIdxMin = iCur - iMin;
         const int diffIdxMax = iCur - iMax;
+        const bool bDiffCountNeg = diffCount < 0;
+        const bool bDiffCount0   = diffCount == 0;
         vMaxCount += ((diffCount <= 0)-1) & diffCount;
-        iMin += ((diffCount < 0 || (diffCount == 0 && diffIdxMin >= 0))-1) & diffIdxMin;  // changed back from |,& to ||,&&
-        iMax += ((diffCount < 0 || (diffCount == 0 && diffIdxMax <= 0))-1) & diffIdxMax;  //
+        iMin += ((bDiffCountNeg || (bDiffCount0 && diffIdxMin >= 0))-1) & diffIdxMin;  //changed back from &,| to &&,||
+        iMax += ((bDiffCountNeg || (bDiffCount0 && diffIdxMax <= 0))-1) & diffIdxMax;
 
     }
     
@@ -262,9 +277,85 @@ void funcF(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 
 }
 
+/* ===================================
+ * funcG: Count and search maxcount from iMin to iMax indices
+ *  + take advantage of consecutive same numbers
+ *  + less branches inside the loop by using &,| instead of &&,||
+ *     to lessen branch mispredictions.
+ *  ? remove 'const' variables inside the loop.
+ -------------------------------------*/
+void funcG(const vector<int>& listN, vector<int>& counts, vector<int>& results){
+    int iMin = 0, iMax = 0;
+    int vMaxCount = 0;
+    const size_t numItems = listN.size();
+    for(size_t i = 0; i < numItems; i++){
+        auto iCur = listN[i];
+        
+        // --- count ahead consecutive same numbers
+        int j = i+1;
+        while (iCur == listN[j] & j < numItems) j++;
+        auto vCur = counts[ iCur ] += (j - i);
+        i = j - 1;
 
-using func_t = void(*)(const vector<int>&, vector<int>&, vector<int>&);
+        // --- update searching info
+        int diffCount = vCur - vMaxCount;
+        int diffIdxMin = iCur - iMin;
+        int diffIdxMax = iCur - iMax;
+        bool bDiffCountNeg = diffCount < 0;
+        bool bDiffCount0   = diffCount == 0;
+        vMaxCount += ((diffCount <= 0)-1) & diffCount;
+        iMin += ((bDiffCountNeg | (bDiffCount0 & diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bDiffCountNeg | (bDiffCount0 & diffIdxMax <= 0))-1) & diffIdxMax;
 
+    }
+    
+    // --- search and get the results
+    for(size_t i = iMin; i <= iMax; i++){
+        if (counts[i] != vMaxCount) continue;
+        results.push_back(i);
+    }
+
+}
+
+/* ===================================
+ * funcH: Count and search maxcount from iMin to iMax indices
+ *  + take advantage of consecutive same numbers
+ *  + less branches inside the loop by using &,| instead of &&,||
+ *     to lessen branch mispredictions.
+ *  ? changed 'while' to 'for' for consecutive same numbers
+ -------------------------------------*/
+void funcH(const vector<int>& listN, vector<int>& counts, vector<int>& results){
+    int iMin = 0, iMax = 0;
+    int vMaxCount = 0;
+    const size_t numItems = listN.size();
+    for(size_t i = 0; i < numItems; i++){
+        auto iCur = listN[i];
+        
+        // --- count ahead consecutive same numbers
+        int j;
+        for (j = i+1; iCur == listN[j] & j < numItems; j++);
+        auto vCur = counts[ iCur ] += (j - i);
+        i = j - 1;
+
+        // --- update searching info
+        const int diffCount = vCur - vMaxCount;
+        const int diffIdxMin = iCur - iMin;
+        const int diffIdxMax = iCur - iMax;
+        const bool bDiffCountNeg = diffCount < 0;
+        const bool bDiffCount0   = diffCount == 0;
+        vMaxCount += ((diffCount <= 0)-1) & diffCount;
+        iMin += ((bDiffCountNeg | (bDiffCount0 & diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bDiffCountNeg | (bDiffCount0 & diffIdxMax <= 0))-1) & diffIdxMax;
+
+    }
+    
+    // --- search and get the results
+    for(size_t i = iMin; i <= iMax; i++){
+        if (counts[i] != vMaxCount) continue;
+        results.push_back(i);
+    }
+
+}
 
 void smallTest() {
 
@@ -283,6 +374,7 @@ void smallTest() {
         {"funcD", funcD},
         {"funcE", funcE},
         {"funcF", funcF},
+        {"funcG", funcG},
     };
 
     // --- test candidate functions
@@ -316,14 +408,7 @@ void smallTest() {
     cout << "\n--- finished! ---" << endl;
 }
 
-void printResultDetails(const vector<vector<int>>& listExpected, const vector<vector<int>>& listResult) {
-    cout << " - **expected result**: " << endl;
-    cout << "    ```c++" << endl << "    ";
-    for(auto listNums : listExpected) {
-        cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
-    }
-    cout << endl << "    ```" << endl;
-    cout << " - **actual result**: " << endl;
+void printResult(const vector<vector<int>>& listResult){
     cout << "    ```c++" << endl << "    ";
     for(auto listNums : listResult) {
         cout << "("; for(auto v : listNums) { cout << v << " "; }; cout << "), ";
@@ -331,33 +416,80 @@ void printResultDetails(const vector<vector<int>>& listExpected, const vector<ve
     cout << endl << "    ```" << endl;
 }
 
+void printResultComparison(const vector<vector<int>>& listExpected, const vector<vector<int>>& listResult) {
+    
+    cout << " - **expected result**: " << endl;
+    printResult(listExpected);
+
+    cout << " - **actual result**: " << endl;
+    printResult(listResult);
+
+}
+
+void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData){
+        // --- title ---
+    cout << "\n\n # Summary: Average execution time." << endl;
+    
+    // --- column labels ---
+    cout << "\n\n |   name  "; 
+    for(auto& t : listTestData) 
+        cout << " | " << std::setw(11) << t.name ;  
+    cout << " | Description " << endl;
+    
+    // --- divider line ---
+    cout << " | --------";
+    for(int i=0; i < listTestData.size(); i++) 
+        cout << " | -----------"; 
+    cout << " | --------------------------------- |" << endl;
+
+    // --- rows ---
+    cout << setprecision(2) << fixed;
+    for (int f = 0; f < listFuncToTest.size(); f++) {
+        auto& func = listFuncToTest[f];
+        cout << " | " << func.name << "    | ";
+        for(auto& test : listTestData) {
+            if(test.listDurations[f] > 0){
+                auto avgDur = double(test.listDurations[f]) / double(test.listTest->size());
+                cout << std::setw(8) << avgDur << " μs | ";
+            } else {
+                cout << test.listDurations[f] << " μs | ";
+            }
+        }
+        cout << " " << func.sDescription;
+        cout << endl;
+    }
+} //printSummaryTable()...
+
 int main(){
 
     //smallTest();
 
     //return 0;
 
+    const int IDX_BASIS_FUNC = 0;
+
     Timer timer;
     vector<int> counts(1000, 0);
     vector<int> results(1000, 0);
     vector<int> expected;
 
-    struct {
-        const char* name;
-        func_t func;
-    } listFuncToTest[] = {
-        {"funcA", funcA},
-        {"funcB", funcB},
-        {"funcC", funcC},
-        {"funcD", funcD},
-        {"funcE", funcE},
-        {"funcF", funcF},
+
+    vector<SFuncToTest> listFuncToTest = {
+        {"funcA", funcA, "unoptimized. basis for correct results." },
+        {"funcB", funcB, "like funcA but search maxcount starting from iMin." },
+        {"funcC", funcC, "like funcB but now, search upto iMax only." },
+        {"funcD", funcD, "like funcC but counting ahead consecutive same numbers." },
+        {"funcE", funcE, "like funcD but converted most conditional branches to branchless version." },
+        {"funcF", funcF, "like funcE but converted back the branches that uses `&&`, and `||`." },
+        {"funcG", funcG, "like funcE but remove all `const` specifier of vars inside the loops." },
+        {"funcH", funcH, "like funcE but changed the inside loop from `while` to `for`.		" },
     };
 
     //TODO: generate own list of random numbers.
     vector<vector<int>> list10k(100, vector<int>(10'000, 0));
     vector<vector<int>> list100k(100, vector<int>(100'000, 0));
-    vector<vector<int>> list1M(10, vector<int>(1'000'000, 0));
+    vector<vector<int>> list1M(100, vector<int>(1'000'000, 0));
+    vector<vector<int>> list10M(10, vector<int>(10'000'000, 0));
 
     srand(time(0));
     auto randomPure = [](auto& listN) {
@@ -376,18 +508,14 @@ int main(){
         }
     };
 
-    vector<vector<vector<int>>*> listTests = { &list10k, &list100k, &list1M };
-    struct testInfo {
-        const char* name;
-        vector<vector<int>>* listTest;
-        vector<Timer::duration_t> listDurations;
-    } listTestInfo[] = {
+    vector<STestData> listTestData = {
         {"10k", &list10k},
         {"100k", &list100k},
         {"1M",  &list1M},
+        {"10M",  &list10M},
     };
 
-    for(auto& test : listTestInfo){
+    for(auto& test : listTestData){
         //randomPure(*test.listTest);
         randomSorted(*test.listTest);
         vector<vector<int>> listResult, listExpected;
@@ -410,76 +538,38 @@ int main(){
                 timer.stop();
 
                 // --- accumulate execution time.
-                cout << timer.getElapsed() << "us, ";
+                cout << timer.getElapsed() << "μs, ";
                 totalDur += timer.getElapsed();
                 listResult.push_back(results);
 
             }
             cout << endl << "    ```" << endl;
                    
-            if (f.func == funcA) {
-                cout << "- get funcA result as basis." << endl;
+            if (f.func == listFuncToTest[IDX_BASIS_FUNC].func) {
                 listExpected = listResult;
+                cout << "- get funcA result as basis." << endl;
+                cout << " - **actual result**: " << endl;
+                printResult(listResult);
             } else if (listExpected != listResult) {
                 totalDur = -1;
-                cout << "- result not matched!" << endl;
-                // printResultDetails(listExpected, listResult);
-                // break;
+                cout << "- ### result not matched!" << endl;
+                printResultComparison(listExpected, listResult);
+                break;
             }
 
-            cout << "- ### total duration: " << totalDur << " us" << endl;
+            cout << "- ### total duration: " << totalDur << " μs" << endl;
             test.listDurations.push_back(totalDur);
 
-            cout << "### Result comparison:" << endl;
-            printResultDetails(listExpected, listResult);
-            
-            
+            //cout << "### Result comparison:" << endl;
+            //printResultComparison(listExpected, listResult);
 
         }
     }
-
-    // // --- print results summary table(in markdown syntax).
-    // cout << "\n\n | name "; 
-    // for(auto& t : listTestInfo) cout << "| " << t.name ;  
-    // cout << endl;
-    // cout << " | --- | --- | --- | --- |" << endl;
-    // for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
-    // {
-    //     auto& func = listFuncToTest[f];
-        
-    //     cout << " | " << func.name << " | ";
-    //     for(auto& test : listTestInfo) {
-    //         auto dur = test.listDurations[f];
-    //         cout << dur << " us | ";
-    //     }
-    //     cout << endl;
-    // }
 
     // --- print average execution time summary table(in markdown syntax).
-    cout << "\n\n # Summary: Average execution time." << endl;
-    cout << "\n\n | name "; 
-    for(auto& t : listTestInfo) cout << "| " << t.name ;  
-    cout << endl;
-    cout << " | --- | --- | --- | --- |" << endl;
-    //cout << setprecision(2) << fixed;
-    for (int f = 0; f < sizeof(listFuncToTest) / sizeof(listFuncToTest[0]); f++)
-    {
-        auto& func = listFuncToTest[f];
-        
-        cout << " | " << func.name << " | ";
-        for(auto& test : listTestInfo) {
-            if(test.listDurations[f] > 0){
-                auto avgDur = test.listDurations[f] / test.listTest->size();
-                cout << avgDur << " us | ";
-            } else {
-                cout << test.listDurations[f] << " us | ";
-            }
-            
-        }
-        cout << endl;
-    }
+    printSummaryTable(listFuncToTest, listTestData);
 
-    cout << "\n--- finished! ---" << endl;
+    cout << endl;
 
     return 0;
 }
