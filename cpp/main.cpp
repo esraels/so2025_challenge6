@@ -431,7 +431,7 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
     cout << "\n\n # Summary: Average execution time." << endl;
     
     // --- column labels ---
-    cout << "\n\n |   name  "; 
+    cout << " |   name  "; 
     for(auto& t : listTestData) 
         cout << " | " << std::setw(11) << t.name ;  
     cout << " | Description " << endl;
