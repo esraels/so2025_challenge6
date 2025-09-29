@@ -426,7 +426,7 @@ void printResultComparison(const vector<vector<int>>& listExpected, const vector
 
 }
 
-void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData){
+void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData, bool bShowDesc = false){
         // --- title ---
     cout << "\n\n # Summary: Average execution time." << endl;
     
@@ -434,13 +434,15 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
     cout << " |   name  "; 
     for(auto& t : listTestData) 
         cout << " | " << std::setw(11) << t.name ;  
-    cout << " | Description " << endl;
+    if (bShowDesc) cout << " | Description ";
+    cout << endl;
     
     // --- divider line ---
     cout << " | --------";
     for(int i=0; i < listTestData.size(); i++) 
         cout << " | -----------"; 
-    cout << " | --------------------------------- |" << endl;
+    if(bShowDesc) cout << " | ---------------------------------";
+    cout << " | " << endl;
 
     // --- rows ---
     cout << setprecision(2) << fixed;
@@ -455,7 +457,7 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
                 cout << test.listDurations[f] << " μs | ";
             }
         }
-        cout << " " << func.sDescription;
+        if (bShowDesc) cout << " " << func.sDescription;
         cout << endl;
     }
 } //printSummaryTable()...
@@ -567,7 +569,7 @@ int main(){
     }
 
     // --- print average execution time summary table(in markdown syntax).
-    printSummaryTable(listFuncToTest, listTestData);
+    printSummaryTable(listFuncToTest, listTestData, true);
 
     cout << endl;
 
