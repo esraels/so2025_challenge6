@@ -5,6 +5,8 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -70,8 +72,8 @@ public:
 using func_t = void(*)(const vector<int>&, vector<int>&, vector<int>&);
 
 struct STestData {
-    const char* name;
-    vector<vector<int>>* listTest;
+    string name;
+    vector<vector<int>> listTest;
     vector<Timer::duration_t> listDurations;
 };
 
@@ -426,7 +428,7 @@ void printResultComparison(const vector<vector<int>>& listExpected, const vector
 
 }
 
-void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData, bool bShowDesc = false){
+void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData, int numIter = 1, bool bShowDesc = false){
         // --- title ---
     cout << "\n\n # Summary: Average execution time." << endl;
     
@@ -451,7 +453,7 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
         cout << " | " << func.name << "    | ";
         for(auto& test : listTestData) {
             if(test.listDurations[f] > 0){
-                auto avgDur = double(test.listDurations[f]) / double(test.listTest->size());
+                auto avgDur = double(test.listDurations[f]) / double(test.listTest.size() * numIter);
                 cout << std::setw(8) << avgDur << " μs | ";
             } else {
                 cout << test.listDurations[f] << " μs | ";
@@ -462,20 +464,49 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
     }
 } //printSummaryTable()...
 
-int main(){
+void printHelp(string sAppName){
+    cout << 
+    "\nUsage: '" << sAppName << "' [OPTIONS]... [FILES]..."
+    "\n[FILES]: One or more text files that should contain list of numbers "
+    "\n       separated by newlines. Wildcards and globing are not supported."
+    "\nOPTIONS: "
+    "\n   -s, --sort-data            sort the test data before testing."
+    "\n   -n, --num-iterations NUM   each test data will be feed to each"
+    "\n                              test functions NUM times for better"
+    "\n                              execution time measurement."
+    "\n   -d, --describe-funcs       show description of internal test data"
+    "\n                              in summary table."
+    "\n   -h, -?, --help             print this help document."
+    "\n"
+    "\nIf there are no valid input files provided, the app will generate its"
+    "\nown internal test data. The --num-iteration value won't take effect."
+    "\n";
+}
 
-    //smallTest();
+void ErrorExit(int errCode, const string& errMsg){
+    cerr << "ERROR: "<< errMsg << endl;
+    cerr << "Try '-?' for help." << endl;
+    exit(errCode);
+}
 
-    //return 0;
+string getUsageHint(){
+    return "Try '-?' for help.";
+}
 
-    const int IDX_BASIS_FUNC = 0;
+vector<int> getListNumsFromFile(ifstream& file) {
+    vector<int> listNums;
+    string line;
+    while (std::getline(file, line)){
+        int num = 0;
+        stringstream(line) >> num;
+        listNums.push_back(num) ;
+    }
+    return listNums;
+}
 
-    Timer timer;
-    vector<int> counts(1000, 0);
-    vector<int> results(1000, 0);
-    vector<int> expected;
+int main(int argc, char* argv[]){
 
-
+    // --- input functions
     vector<SFuncToTest> listFuncToTest = {
         {"funcA", funcA, "unoptimized. basis for correct results." },
         {"funcB", funcB, "like funcA but search maxcount starting from iMin." },
@@ -487,12 +518,62 @@ int main(){
         {"funcH", funcH, "like funcE but changed the inside loop from `while` to `for`.		" },
     };
 
-    //TODO: generate own list of random numbers.
-    vector<vector<int>> list10k(100, vector<int>(10'000, 0));
-    vector<vector<int>> list100k(100, vector<int>(100'000, 0));
-    vector<vector<int>> list1M(100, vector<int>(1'000'000, 0));
-    vector<vector<int>> list10M(10, vector<int>(10'000'000, 0));
+    // --- input test data
+    vector<STestData> listTestData;
 
+    cout << "- Processing Arguments..." << endl;
+
+    // --- process arguments...
+    bool bSortedData = false;
+    bool bShowFuncDesc = false;
+    int numIterations = 1;
+
+
+    for(int i = 1; i < argc; i++){
+        auto sArg = string(argv[i]);
+        if (sArg.empty()) continue;
+        else if (sArg == "-s" || sArg == "--sort-data") bSortedData = true;
+        else if (sArg == "-d" || sArg == "--describe-funcs") bShowFuncDesc = true;
+        else if (sArg == "-h" || sArg == "--help" || sArg == "-?") {
+            printHelp(argv[0]);
+            exit(0);
+        } 
+        else if (sArg == "-n" || sArg == "--num-iterations") {
+            int parsedNum = -1;
+            if(i < argc-1) {
+                stringstream sNum(argv[i+1]);
+                sNum >> parsedNum;
+            }
+            if (parsedNum > 0){
+                numIterations = parsedNum;
+            } else {
+                ErrorExit(1, "invalid value for option: -n, --num-iterations.");
+            }
+        }
+        else if (sArg[0] != '-' ){
+            ifstream file(sArg);
+            if(file.is_open()){
+                cout << "- Parsing '" << sArg << "' file..." << endl;
+                vector<int> listNums = getListNumsFromFile(file);
+                if(!listNums.empty()){
+                    STestData data;
+                    data.listTest.push_back(std::move(listNums));
+                    data.name = sArg;
+                } else {
+                    cout << "   - '" << sArg << "' file has empty valid numbers." << endl;
+                }
+            } else {
+                ErrorExit(2, "Failed to open file: '" + sArg + "'");
+            }
+            file.close();
+        }
+        else {
+            ErrorExit(3, "Invalid argument option: '" + sArg + "'");
+        }
+    }
+
+    // --- list of internal test data generators.
+    // note: only randomPure() is used for now.
     srand(time(0));
     auto randomPure = [](auto& listN) {
         for(auto& list : listN) {
@@ -509,17 +590,53 @@ int main(){
             sort(list.begin(), list.end());
         }
     };
-
-    vector<STestData> listTestData = {
-        {"10k", &list10k},
-        {"100k", &list100k},
-        {"1M",  &list1M},
-        {"10M",  &list10M},
+    auto randomMultipleAnswers = [](auto& listN) {
+        // todo: implement
     };
+    auto randomMultipleAnswersWithinControlledRange = [](auto& listN) {
+        // todo: implement
+    };
+
+    // --- if input data from command line argument is empty...
+    if (listTestData.empty()){
+        vector<STestData> internalTestData {
+            {"10k", vector(100, vector<int>(10'000))},
+            {"100k", vector(100, vector<int>(100'000))},
+            {"1M",  vector(50, vector<int>(1'000'000))},
+            {"10M",  vector(10, vector<int>(10'000'000))},
+        };
+
+        // --- generate test data.
+        cout << "- Generating internal test data..." << endl;
+        for(auto& test : internalTestData){
+            randomPure(test.listTest);
+            //randomSorted(test.listTest);
+        }
+        listTestData = std::move(internalTestData);
+        numIterations = 1;
+    }
+    
+    // --- sorting test data.
+    if(bSortedData) {
+        cout << "- Sorting test data..." << endl;
+        for(auto& listN : listTestData){
+            for(auto& list : listN.listTest){
+                sort(list.begin(), list.end());
+            }
+        }
+    }
+
+    // --- start benchmark
+    cout << "# Start benchmarking..." << endl;
+    Timer timer;
+    vector<int> counts(1000, 0);
+    vector<int> results(1000, 0);
+    vector<int> expected;
+    const int IDX_BASIS_FUNC = 0;
 
     for(auto& test : listTestData){
         //randomPure(*test.listTest);
-        randomSorted(*test.listTest);
+        //randomSorted(*test.listTest);
         vector<vector<int>> listResult, listExpected;
         listExpected.clear();
         test.listDurations.clear();
@@ -528,22 +645,24 @@ int main(){
             listResult.clear();
             cout << "\n ## Testing `" << f.name << "` with `" << test.name << "`:" << endl;
             cout << "- dur list: " << endl << "    ```c++" << endl  << "    ";
-            for(auto& listNums : *test.listTest) {
+            for(int i = 0; i < numIterations; i++) {
+                for(auto& listNums : test.listTest) {
 
-                // --- prepare input/output containers.
-                std::fill(counts.begin(), counts.end(), 0); 
-                results.clear();
+                    // --- prepare input/output containers.
+                    std::fill(counts.begin(), counts.end(), 0); 
+                    results.clear();
 
-                // --- execute process
-                timer.start();
-                f.func(listNums, counts, results);
-                timer.stop();
+                    // --- execute process
+                    timer.start();
+                    f.func(listNums, counts, results);
+                    timer.stop();
 
-                // --- accumulate execution time.
-                cout << timer.getElapsed() << "μs, ";
-                totalDur += timer.getElapsed();
-                listResult.push_back(results);
+                    // --- accumulate execution time.
+                    cout << timer.getElapsed() << "μs, ";
+                    totalDur += timer.getElapsed();
+                    listResult.push_back(results);
 
+                }
             }
             cout << endl << "    ```" << endl;
                    
@@ -569,7 +688,7 @@ int main(){
     }
 
     // --- print average execution time summary table(in markdown syntax).
-    printSummaryTable(listFuncToTest, listTestData, true);
+    printSummaryTable(listFuncToTest, listTestData, numIterations, bShowFuncDesc);
 
     cout << endl;
 

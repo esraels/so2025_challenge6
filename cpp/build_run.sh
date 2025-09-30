@@ -4,4 +4,5 @@
 g++ main.cpp -o out/app -std=c++17 -O3 || exit 1
 
 
-./out/app
+
+./out/app $*
