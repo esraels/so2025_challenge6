@@ -359,56 +359,6 @@ void funcH(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 
 }
 
-void smallTest() {
-
-    Timer timer;
-    vector<int> counts(1000, 0);
-    vector<int> results(1000, 0);
-    vector<int> expected;
-
-    struct {
-        const char* name;
-        func_t func;
-    } listFuncToTest[] = {
-        {"funcA", funcA},
-        {"funcB", funcB},
-        {"funcC", funcC},
-        {"funcD", funcD},
-        {"funcE", funcE},
-        {"funcF", funcF},
-        {"funcG", funcG},
-    };
-
-    // --- test candidate functions
-    for(auto& f : listFuncToTest) {
-        
-        // --- prepare input/output containers.
-        std::fill(counts.begin(), counts.end(), 0); 
-        results.clear();
-
-        // --- execute process
-        timer.start();
-        f.func(listNums, counts, results);
-        timer.stop();
-
-        // --- print results
-        cout << "---" << f.name << ": Result ---" << endl;
-        cout << "duration: " << timer.getElapsed() << " ms" << endl;
-        cout << "result count: " << results.size() << endl;
-        cout << "result numbers: "; for(auto v : results) { cout << v << " "; }; cout << endl;
-
-        if(f.func == funcA) {
-            expected = results;
-        } else {
-            cout << "result matched: " << (expected == results ? "true" : "false") << endl;
-        }
-        
-        cout << "\n\n";
-        
-    }
-
-    cout << "\n--- finished! ---" << endl;
-}
 
 void printResult(const vector<vector<int>>& listResult){
     cout << "    ```c++" << endl << "    ";
@@ -476,6 +426,8 @@ void printHelp(string sAppName){
     "\n                              execution time measurement."
     "\n   -d, --describe-funcs       show description of internal test data"
     "\n                              in summary table."
+    "\n   -t, --table-only           print the summary table only. no-verbose."
+    "\n       --no-verbose           same as --table-only."
     "\n   -h, -?, --help             print this help document."
     "\n"
     "\nIf there are no valid input files provided, the app will generate its"
@@ -487,10 +439,6 @@ void ErrorExit(int errCode, const string& errMsg){
     cerr << "ERROR: "<< errMsg << endl;
     cerr << "Try '-?' for help." << endl;
     exit(errCode);
-}
-
-string getUsageHint(){
-    return "Try '-?' for help.";
 }
 
 vector<int> getListNumsFromFile(ifstream& file) {
@@ -521,19 +469,38 @@ int main(int argc, char* argv[]){
     // --- input test data
     vector<STestData> listTestData;
 
-    cout << "- Processing Arguments..." << endl;
-
     // --- process arguments...
     bool bSortedData = false;
     bool bShowFuncDesc = false;
+    bool bVerbose = true;
     int numIterations = 1;
 
+    // --- look first for verbosity options
+    for(int i = 1; i < argc; i++){
+        auto sArg = string(argv[i]);
+        if (sArg.empty()) continue;
+        else if (sArg == "-t" || sArg == "--table-only" || sArg == "no-verbose") {
+            bVerbose = false;
+            break;
+        }
+    }
+
+    // verbose logger
+    auto vLog = [&](const string& logMsg) {
+        if(!bVerbose) return;
+        cout << logMsg << endl;
+    };
+
+    vLog("- Processing Arguments...");
 
     for(int i = 1; i < argc; i++){
         auto sArg = string(argv[i]);
         if (sArg.empty()) continue;
         else if (sArg == "-s" || sArg == "--sort-data") bSortedData = true;
         else if (sArg == "-d" || sArg == "--describe-funcs") bShowFuncDesc = true;
+        else if (sArg == "-t" || sArg == "--table-only" || sArg == "no-verbose") {
+            bVerbose = false;
+        }
         else if (sArg == "-h" || sArg == "--help" || sArg == "-?") {
             printHelp(argv[0]);
             exit(0);
@@ -553,14 +520,14 @@ int main(int argc, char* argv[]){
         else if (sArg[0] != '-' ){
             ifstream file(sArg);
             if(file.is_open()){
-                cout << "- Parsing '" << sArg << "' file..." << endl;
+                if(bVerbose) cout << "- Parsing '" << sArg << "' file..." << endl;
                 vector<int> listNums = getListNumsFromFile(file);
                 if(!listNums.empty()){
                     STestData data;
                     data.listTest.push_back(std::move(listNums));
                     data.name = sArg;
                 } else {
-                    cout << "   - '" << sArg << "' file has empty valid numbers." << endl;
+                    if (bVerbose) cout << "   - '" << sArg << "' file has empty valid numbers." << endl;
                 }
             } else {
                 ErrorExit(2, "Failed to open file: '" + sArg + "'");
@@ -607,7 +574,7 @@ int main(int argc, char* argv[]){
         };
 
         // --- generate test data.
-        cout << "- Generating internal test data..." << endl;
+        vLog("- Generating internal test data...");
         for(auto& test : internalTestData){
             randomPure(test.listTest);
             //randomSorted(test.listTest);
@@ -618,7 +585,7 @@ int main(int argc, char* argv[]){
     
     // --- sorting test data.
     if(bSortedData) {
-        cout << "- Sorting test data..." << endl;
+        vLog("- Sorting test data...");
         for(auto& listN : listTestData){
             for(auto& list : listN.listTest){
                 sort(list.begin(), list.end());
@@ -627,7 +594,7 @@ int main(int argc, char* argv[]){
     }
 
     // --- start benchmark
-    cout << "# Start benchmarking..." << endl;
+    vLog("# Start benchmarking...");
     Timer timer;
     vector<int> counts(1000, 0);
     vector<int> results(1000, 0);
@@ -643,8 +610,10 @@ int main(int argc, char* argv[]){
         for(auto& f : listFuncToTest) {
             Timer::duration_t totalDur = 0;
             listResult.clear();
-            cout << "\n ## Testing `" << f.name << "` with `" << test.name << "`:" << endl;
-            cout << "- dur list: " << endl << "    ```c++" << endl  << "    ";
+            if(bVerbose) {
+                cout << "\n ## Testing `" << f.name << "` with `" << test.name << "`:" << endl;
+                cout << "- dur list: " << endl << "    ```c++" << endl  << "    ";
+            }
             for(int i = 0; i < numIterations; i++) {
                 for(auto& listNums : test.listTest) {
 
@@ -658,31 +627,37 @@ int main(int argc, char* argv[]){
                     timer.stop();
 
                     // --- accumulate execution time.
-                    cout << timer.getElapsed() << "μs, ";
+                    if(bVerbose) cout << timer.getElapsed() << "μs, ";
                     totalDur += timer.getElapsed();
                     listResult.push_back(results);
 
                 }
             }
-            cout << endl << "    ```" << endl;
+            if(bVerbose) cout << endl << "    ```" << endl;
                    
             if (f.func == listFuncToTest[IDX_BASIS_FUNC].func) {
                 listExpected = listResult;
-                cout << "- get funcA result as basis." << endl;
-                cout << " - **actual result**: " << endl;
-                printResult(listResult);
+                if(bVerbose) {
+                    cout << "- get funcA result as basis." << endl;
+                    cout << " - **actual result**: " << endl;
+                    printResult(listResult);
+                }
             } else if (listExpected != listResult) {
                 totalDur = -1;
-                cout << "- ### result not matched!" << endl;
-                printResultComparison(listExpected, listResult);
+                if(bVerbose) {
+                    cout << "- ### result not matched!" << endl;
+                    printResultComparison(listExpected, listResult);
+                }
                 break;
             }
 
-            cout << "- ### total duration: " << totalDur << " μs" << endl;
             test.listDurations.push_back(totalDur);
 
-            //cout << "### Result comparison:" << endl;
-            //printResultComparison(listExpected, listResult);
+            if(bVerbose) {
+                cout << "- ### total duration: " << totalDur << " μs" << endl;
+                //cout << "### Result comparison:" << endl;
+                //printResultComparison(listExpected, listResult);
+            }
 
         }
     }
