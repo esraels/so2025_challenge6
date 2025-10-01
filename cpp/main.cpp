@@ -379,9 +379,6 @@ void printResultComparison(const vector<vector<int>>& listExpected, const vector
 }
 
 void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<STestData>& listTestData, int numIter = 1, bool bShowDesc = false){
-        // --- title ---
-    cout << "\n\n # Summary: Average execution time." << endl;
-    
     // --- column labels ---
     cout << " |   name  "; 
     for(auto& t : listTestData) 
@@ -663,9 +660,10 @@ int main(int argc, char* argv[]){
     }
 
     // --- print average execution time summary table(in markdown syntax).
+	vLog( "\n\n # Summary: Average execution time.");
     printSummaryTable(listFuncToTest, listTestData, numIterations, bShowFuncDesc);
 
-    cout << endl;
+    vLog("");
 
     return 0;
 }
