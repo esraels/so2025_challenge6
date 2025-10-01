@@ -10,40 +10,6 @@
 
 using namespace std;
 
-//int listN[] = {
-vector<int> listNums {
-    462,86,839,546,270,
-    898,379,566,6,392,
-    626,188,45,533,570,
-    349,257,362,409,253,
-    916,684,205,890,291,
-    92,208,17,48,406,
-    254,667,103,400,857,
-    309,713,261,10,300,
-    54,140,251,178,328,
-    641,616,208,844,820,
-
-    //208,
-    //374, 374, 374,
-    //100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 
-    //200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 
-    
-    //101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 
-    //201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 201, 
-
-    832,658,290,188,663,
-    180,105,996,351,429,
-    374,780,179,585,343,
-    752,756,193,518,90,
-    641,482,546,694,936,
-    357,799,878,733,805,
-    287,843,189,374,168,
-    430,785,396,707,694,
-    439,262,657,892,905,
-    871,863,873,488,653,
-    
-};
-
 class Timer {
 public:
     using time_t = std::chrono::high_resolution_clock::time_point;
@@ -403,7 +369,7 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
                 auto avgDur = double(test.listDurations[f]) / double(test.listTest.size() * numIter);
                 cout << std::setw(8) << avgDur << " μs | ";
             } else {
-                cout << test.listDurations[f] << " μs | ";
+                cout << std::setw(8) << test.listDurations[f] << " μs | ";
             }
         }
         if (bShowDesc) cout << " " << func.sDescription;
@@ -523,6 +489,7 @@ int main(int argc, char* argv[]){
                     STestData data;
                     data.listTest.push_back(std::move(listNums));
                     data.name = sArg;
+                    listTestData.push_back(std::move(data));
                 } else {
                     if (bVerbose) cout << "   - '" << sArg << "' file has empty valid numbers." << endl;
                 }
