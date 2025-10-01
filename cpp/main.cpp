@@ -420,6 +420,8 @@ void printHelp(string sAppName){
     "\n                              test functions NUM times for better"
     "\n                              execution time measurement."
     "\n                              NUM must be from 1 to 999999999."
+    "\n   -f, --show-funcs-table     print only the table test functions with"
+    "\n                              descriptions. No test will be run."
     "\n   -d, --describe-funcs       show description of internal test data"
     "\n                              in summary table."
     "\n   -t, --table-only           print the summary table only. no-verbose."
@@ -503,6 +505,11 @@ int main(int argc, char* argv[]){
             printHelp(argv[0]);
             exit(0);
         } 
+        else if (sArg == "-f" || sArg == "--show-funcs-table") {
+            printSummaryTable(listFuncToTest, vector<STestData>(), 1, true);
+            exit(0);
+        } 
+        
         else if (sArg == "-n" || sArg == "--num-iterations") {
             int parsedNum = -1;
             if(i < argc-1) {
