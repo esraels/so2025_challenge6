@@ -385,10 +385,10 @@ void printSummaryTable(const vector<SFuncToTest>& listFuncToTest, const vector<S
     cout << endl;
     
     // --- divider line ---
-    cout << " | --------";
+    cout << " | :-------";
     for(int i=0; i < listTestData.size(); i++) 
-        cout << " | -----------"; 
-    if(bShowDesc) cout << " | ---------------------------------";
+        cout << " | ----------:"; 
+    if(bShowDesc) cout << " | :--------------------------------";
     cout << " | " << endl;
 
     // --- rows ---
