@@ -325,6 +325,38 @@ void funcH(const vector<int>& listN, vector<int>& counts, vector<int>& results){
 
 }
 
+/* ===================================
+ * funcI: Count and search maxcount from iMin to iMax indices
+ *  + less branches inside the loop by using &,| instead of &&,||
+ *     to lessen branch mispredictions.
+ -------------------------------------*/
+void funcI(const vector<int>& listN, vector<int>& counts, vector<int>& results){
+    int iMin = 0, iMax = 0;
+    int vMaxCount = 0;
+    const size_t numItems = listN.size();
+    for(size_t i = 0; i < numItems; i++){
+        auto const iCur = listN[i];
+        auto const vCur = ++counts[ iCur ];
+
+        // --- update searching info
+        const int diffCount = vCur - vMaxCount;
+        const int diffIdxMin = iCur - iMin;
+        const int diffIdxMax = iCur - iMax;
+        const bool bDiffCountNeg = diffCount < 0;
+        const bool bDiffCount0   = diffCount == 0;
+        vMaxCount += ((diffCount <= 0)-1) & diffCount;
+        iMin += ((bDiffCountNeg | (bDiffCount0 & diffIdxMin >= 0))-1) & diffIdxMin;
+        iMax += ((bDiffCountNeg | (bDiffCount0 & diffIdxMax <= 0))-1) & diffIdxMax;
+
+    }
+    
+    // --- search and get the results
+    for(size_t i = iMin; i <= iMax; i++){
+        if (counts[i] != vMaxCount) continue;
+        results.push_back(i);
+    }
+    
+}
 
 void printResult(const vector<vector<int>>& listResult){
     cout << "    ```c++" << endl << "    ";
@@ -427,7 +459,8 @@ int main(int argc, char* argv[]){
         {"funcE", funcE, "like funcD but converted most conditional branches to branchless version." },
         {"funcF", funcF, "like funcE but converted back the branches that uses `&&`, and `||`." },
         {"funcG", funcG, "like funcE but remove all `const` specifier of vars inside the loops." },
-        {"funcH", funcH, "like funcE but changed the inside loop from `while` to `for`.		" },
+        {"funcH", funcH, "like funcE but changed the inside loop from `while` to `for`." },
+        {"funcI", funcI, "like funcE but removed counting ahead of consecutive same numbers." },
     };
 
     // --- input test data
