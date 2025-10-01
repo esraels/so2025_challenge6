@@ -1,5 +1,6 @@
 
 # My Entry for SO 2025 Code Challenge #6: Int Counting
+- Jump to **[The Result](#the-result):** section for the actual benchmarking result.
 - The code in this project are not written by AI. Sometimes, `VS Code`'s AI confuses me while typing but I keep on canceling it's suggested code. I am surprised that some of its suggestion are what I actually want to code, even those derivation of boolean algebra formulas I did in the code comments! There are times I messed around with it if it will actually produces correct code or comments. It is like playing with somebody while in the middle of a work with deadline. I am not sure if I wasted my time playing with it, but I kinda felt satisfied and had fun.
 
 - ### Code Structure:
@@ -9,6 +10,7 @@
     - The app generates internal test data with 10x larger than the 1M list of numbers provided in the [stackoverflow](https://stackoverflow.com/beta/challenges/79766578/code-challenge-6-integer-counting) code challenge page.
     - The Logs format are in `markdown` syntax so you can pipe the output to a markdown file and view the output in a markdown viewer. I use `VS Code`'s builtin markdown viewer.
     - The test functions so far are optimize for **SPEED**. I haven't got the time to finish the optimize for **SPACE** version of functions before the submission day. Please refer to the _todo_list.txt_ to see what was my full plan before starting to code in this project.
+    - `funcA` is the basis to check if the other functions got the correct answers.
 
 - ### Build Scripts:
     - I used `bash` scripts for building the app and manipulating the output. I am running and testing the app `WSL2`. I planned to provide `batch` scripts version so the app will be buildable and testable in Windows but I have no time. The deadline is today, as of this writing (Sept 30, 2025... 🤔). Wait... it is actually Oct 01 now, yesterday is the deadline. Oh no... ;-(. Anyway, it seems that I can still submit it and Sept 30 will be the day the other entries are visible. It feels like the deadline because it is a chance to copy other works or based your work from them. I don't wanna look! 🫣 I am not even sure if I misunderstood the instructions and actually submitting a completely wrong entry. 🐒
@@ -91,6 +93,9 @@
 
 ## The Result:
 - Below is a an sample generated result of this app.
+- You can see that the optimize version of functions is slower than the unoptimized version when the input data is purely random.
+- In my conclusion, it really pays well if the input data is normalized before processing. In this case, "sorted".
+- For the unoptimized version, the execution time is consistent whether the data is sorted or not.
 
 # Benchmark: 
 
