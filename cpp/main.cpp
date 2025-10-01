@@ -444,7 +444,7 @@ int main(int argc, char* argv[]){
     for(int i = 1; i < argc; i++){
         auto sArg = string(argv[i]);
         if (sArg.empty()) continue;
-        else if (sArg == "-t" || sArg == "--table-only" || sArg == "no-verbose") {
+        else if (sArg == "-t" || sArg == "--table-only" || sArg == "--no-verbose") {
             bVerbose = false;
             break;
         }
@@ -463,7 +463,7 @@ int main(int argc, char* argv[]){
         if (sArg.empty()) continue;
         else if (sArg == "-s" || sArg == "--sort-data") bSortedData = true;
         else if (sArg == "-d" || sArg == "--describe-funcs") bShowFuncDesc = true;
-        else if (sArg == "-t" || sArg == "--table-only" || sArg == "no-verbose") {
+        else if (sArg == "-t" || sArg == "--table-only" || sArg == "--no-verbose") {
             bVerbose = false;
         }
         else if (sArg == "-h" || sArg == "--help" || sArg == "-?") {
