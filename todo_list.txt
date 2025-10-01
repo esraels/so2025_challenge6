@@ -1,4 +1,22 @@
 # TODO list:
+- update post:
+    - mention funcC has optimizations but still has benefit of branch predictions.
+    - mention funcE is expected to always be the fastest in all scenario. but this is not the case.
+        - research why?
+            - maybe the waiting time for the write wait time of iMin, iMax, and vMaxCount in the next loop.
+            - check if cache is related.
+    - mention how execution time is measured in the code.
+    - how the app was run to get the result.
+        - all apps off except task manager and terminal.
+    - mention machine spec used.
+    - which func won on most cases.
+    - fix final output format in the post.
+        - needs newline space between table and the label of next table.
+    - display the answers of given input files.
+    - add O(n) time result.
+    -? add boolean algebra optimization.
+    -? add how branch is converted to branchless.
+    - add graph? to compare visually the performance behavior of the test functions.
 - write in cpp:
     [ok]- initial implementation version:
     - write optimal version:
