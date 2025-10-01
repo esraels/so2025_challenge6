@@ -395,7 +395,7 @@ void printHelp(string sAppName){
     "\n   -h, -?, --help             print this help document."
     "\n"
     "\nIf there are no valid input files provided, the app will generate its"
-    "\nown internal test data. The --num-iteration value won't take effect."
+    "\nown internal test data."
     "\n";
 }
 
@@ -554,7 +554,7 @@ int main(int argc, char* argv[]){
             //randomSorted(test.listTest);
         }
         listTestData = std::move(internalTestData);
-        numIterations = 1;
+        //numIterations = 1;
     }
     
     // --- sorting test data.
