@@ -47,6 +47,9 @@
     vector<int> counts(1000, 0);
     vector<int> results(1000, 0);
     ...
+    std::fill(counts.begin(), counts.end(), 0); 
+    results.clear();
+    ...
     f.func(listNums, counts, results);
     ...
     listResult.push_back(results);
