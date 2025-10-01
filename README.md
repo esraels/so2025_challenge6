@@ -92,7 +92,7 @@
 ---
 
 ## The Result:
-- Below is a an sample generated result of this app.
+- Below is a sample generated result of this app.
 - You can see that the optimize version of functions is slower than the unoptimized version when the input data is purely random.
 - In my conclusion, it really pays well if the input data is normalized before processing. In this case, "sorted".
 - For the unoptimized version, the execution time is consistent whether the data is sorted or not.

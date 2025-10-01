@@ -11,12 +11,12 @@
                 - multiple answer within controlled range of index.
             - write all input data to file.
             - write output to different files.
-            - *** read input data from file.
-                - add commandline option to set how many loop to execute a single list of data.
+            [ok]- read input data from file.
+                [ok]- add commandline option to set how many loop to execute a single list of data.
             - read input data from external stream.
-            - *** test data to both random and sorted data.
-            @@@ - fix bug: -n not working.
-            @@@ - test the input data files provided in the challenge site.
+            [ok]- test data to both random and sorted data.
+                [ok]- fix bug: -n not working.
+                [ok]- test the input data files provided in the challenge site.
         - memory space.
     - write generic version:
         - supports negative numbers.
