@@ -383,10 +383,11 @@ void printHelp(string sAppName){
     "\n[FILES]: One or more text files that should contain list of numbers "
     "\n       separated by newlines. Wildcards and globing are not supported."
     "\nOPTIONS: "
-    "\n   -s, --sort-data            sort the test data before testing."
+    "\n   -s, --sort-data            sort the test data before the benchmark."
     "\n   -n, --num-iterations NUM   each test data will be feed to each"
     "\n                              test functions NUM times for better"
     "\n                              execution time measurement."
+    "\n                              NUM must be from 1 to 999999999."
     "\n   -d, --describe-funcs       show description of internal test data"
     "\n                              in summary table."
     "\n   -t, --table-only           print the summary table only. no-verbose."
@@ -437,6 +438,7 @@ int main(int argc, char* argv[]){
     bool bShowFuncDesc = false;
     bool bVerbose = true;
     int numIterations = 1;
+    vector<string> listTestFiles;
 
     // --- look first for verbosity options
     for(int i = 1; i < argc; i++){
@@ -471,36 +473,44 @@ int main(int argc, char* argv[]){
         else if (sArg == "-n" || sArg == "--num-iterations") {
             int parsedNum = -1;
             if(i < argc-1) {
-                stringstream sNum(argv[i+1]);
-                sNum >> parsedNum;
+                string sNum(argv[++i]);
+                if(!sNum.empty() && sNum.size() <= 9 && '0' < sNum[0] && sNum[0] <= '9') {
+                    stringstream(sNum) >> parsedNum;
+                }
             }
             if (parsedNum > 0){
                 numIterations = parsedNum;
+                if(bVerbose) cout << "   - Num Iteration: " << numIterations << endl;
             } else {
-                ErrorExit(1, "invalid value for option: -n, --num-iterations.");
+                ErrorExit(1, "Invalid value for option: -n, --num-iterations.");
             }
         }
         else if (sArg[0] != '-' ){
-            ifstream file(sArg);
-            if(file.is_open()){
-                if(bVerbose) cout << "- Parsing '" << sArg << "' file..." << endl;
-                vector<int> listNums = getListNumsFromFile(file);
-                if(!listNums.empty()){
-                    STestData data;
-                    data.listTest.push_back(std::move(listNums));
-                    data.name = sArg;
-                    listTestData.push_back(std::move(data));
-                } else {
-                    if (bVerbose) cout << "   - '" << sArg << "' file has empty valid numbers." << endl;
-                }
-            } else {
-                ErrorExit(2, "Failed to open file: '" + sArg + "'");
-            }
-            file.close();
+            listTestFiles.push_back(sArg);
         }
         else {
             ErrorExit(3, "Invalid argument option: '" + sArg + "'");
         }
+    }
+
+    // --- parse input files
+    for(auto& sFile : listTestFiles) {
+        ifstream file(sFile);
+        if(file.is_open()){
+            if(bVerbose) cout << "- Parsing '" << sFile << "' file..." << endl;
+            vector<int> listNums = getListNumsFromFile(file);
+            if(!listNums.empty()){
+                STestData data;
+                data.listTest.push_back(std::move(listNums));
+                data.name = sFile;
+                listTestData.push_back(std::move(data));
+            } else {
+                if (bVerbose) cout << "   - '" << sFile << "' file has empty valid numbers." << endl;
+            }
+        } else {
+            ErrorExit(2, "Failed to open file: '" + sFile + "'");
+        }
+        file.close();
     }
 
     // --- list of internal test data generators.
