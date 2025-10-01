@@ -1,3 +1,6 @@
 #!/bin/bash
-./build.sh --std=c++17 -O3 || exit $?
+echo "# Building the App..."
+./build.sh || exit $?
+
+echo "# Running the App..."
 ./run_app.sh $* || exit $?
