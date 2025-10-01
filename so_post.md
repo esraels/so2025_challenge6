@@ -333,6 +333,7 @@ In summary, these are the functions with their descriptions:
 
 - Below is a sample generated result of this app.
 - You can see that the optimize version of functions is slower than the unoptimized version when the input data is purely random.
+- When the data are sorted, better performance is achieved.
 - In my conclusion, it really pays well if the input data is normalized before processing. In this case, "sorted".
 - For the unoptimized version, the execution time is consistent whether the data is sorted or not.
 
@@ -342,85 +343,85 @@ In summary, these are the functions with their descriptions:
 
 | name | 10k | 100k | 1M | 10M |
 |:--- | ---:| ---:| ---:| ---:|
-| funcA | 12.98 μs | 127.43 μs | 1294.88 μs | 13289.10 μs |
-| funcB | 32.03 μs | 300.63 μs | 3072.36 μs | 29541.20 μs |
-| funcC | 13.43 μs | 136.94 μs | 1367.16 μs | 13977.60 μs |
-| funcD | 34.15 μs | 384.90 μs | 3215.48 μs | 32806.40 μs |
-| funcE | 35.69 μs | 350.45 μs | 3721.40 μs | 36802.70 μs |
-| funcF | 36.57 μs | 349.65 μs | 3336.06 μs | 36215.10 μs |
-| funcG | 36.02 μs | 361.99 μs | 3763.10 μs | 37554.60 μs |
-| funcH | 36.52 μs | 359.46 μs | 3644.96 μs | 36718.60 μs |
-| funcI | 33.26 μs | 293.15 μs | 3238.12 μs | 34710.40 μs |
+| funcA | 5.84 μs | 57.12 μs | 578.34 μs | 6522.20 μs |
+| funcB | 21.85 μs | 220.06 μs | 2104.02 μs | 20774.20 μs |
+| funcC | 5.49 μs | 57.69 μs | 540.14 μs | 5554.10 μs |
+| funcD | 12.25 μs | 119.10 μs | 1192.10 μs | 11800.10 μs |
+| funcE | 21.36 μs | 218.82 μs | 2199.56 μs | 21898.20 μs |
+| funcF | 14.31 μs | 142.08 μs | 1419.20 μs | 14195.70 μs |
+| funcG | 21.49 μs | 218.27 μs | 2189.46 μs | 21813.90 μs |
+| funcH | 21.23 μs | 218.92 μs | 2188.74 μs | 21745.00 μs |
+| funcI | 20.74 μs | 211.34 μs | 2118.92 μs | 21211.40 μs |
 
 - ## Internal Test Data Sorted
 
 | name | 10k | 100k | 1M | 10M |
 |:--- | ---:| ---:| ---:| ---:|
-| funcA | 19.71 μs | 155.93 μs | 1241.98 μs | 12754.20 μs |
-| funcB | 18.79 μs | 187.89 μs | 1733.02 μs | 17893.50 μs |
-| funcC | 15.03 μs | 147.79 μs | 1317.16 μs | 13302.60 μs |
-| funcD | 16.06 μs | 75.89 μs | 695.16 μs | 7425.90 μs |
-| funcE | 19.71 μs | 123.51 μs | 1170.90 μs | 12020.30 μs |
-| funcF | 16.41 μs | 76.79 μs | 695.68 μs | 7230.10 μs |
-| funcG | 19.39 μs | 123.29 μs | 1196.06 μs | 12149.20 μs |
-| funcH | 19.99 μs | 123.35 μs | 1193.00 μs | 12297.80 μs |
-| funcI | 36.60 μs | 337.31 μs | 3205.24 μs | 32053.20 μs |
+| funcA | 16.27 μs | 64.75 μs | 479.82 μs | 4727.50 μs |
+| funcB | 9.12 μs | 81.17 μs | 698.62 μs | 6906.10 μs |
+| funcC | 10.07 μs | 62.45 μs | 478.00 μs | 4788.50 μs |
+| funcD | 10.06 μs | 41.42 μs | 361.02 μs | 3613.00 μs |
+| funcE | 11.07 μs | 52.21 μs | 474.64 μs | 4758.40 μs |
+| funcF | 10.02 μs | 41.75 μs | 362.26 μs | 3648.90 μs |
+| funcG | 11.29 μs | 51.46 μs | 470.04 μs | 4729.90 μs |
+| funcH | 11.00 μs | 53.18 μs | 472.74 μs | 4712.20 μs |
+| funcI | 22.21 μs | 221.65 μs | 2059.62 μs | 20615.30 μs |
 
 - ## Input Files
 
 | name | input/100_nums.txt | input/10k_nums.txt | input/1M_nums.txt |
 |:--- | ---:| ---:| ---:|
-| funcA | 1.00 μs | 12.00 μs | 1197.00 μs |
-| funcB | 1.00 μs | 22.00 μs | 2271.00 μs |
-| funcC | 0 μs | 13.00 μs | 1350.00 μs |
-| funcD | 0 μs | 30.00 μs | 3199.00 μs |
-| funcE | 0 μs | 33.00 μs | 3437.00 μs |
-| funcF | 1.00 μs | 33.00 μs | 3536.00 μs |
-| funcG | 0 μs | 32.00 μs | 3498.00 μs |
-| funcH | 0 μs | 32.00 μs | 3620.00 μs |
-| funcI | 0 μs | 30.00 μs | 3348.00 μs |
+| funcA | 0 μs | 6.00 μs | 571.00 μs |
+| funcB | 0 μs | 15.00 μs | 1467.00 μs |
+| funcC | 0 μs | 6.00 μs | 516.00 μs |
+| funcD | 0 μs | 12.00 μs | 1151.00 μs |
+| funcE | 0 μs | 21.00 μs | 2135.00 μs |
+| funcF | 0 μs | 14.00 μs | 1379.00 μs |
+| funcG | 0 μs | 21.00 μs | 2123.00 μs |
+| funcH | 0 μs | 21.00 μs | 2161.00 μs |
+| funcI | 0 μs | 20.00 μs | 2063.00 μs |
 
 - ## Input Files Sorted
 
 | name | input/100_nums.txt | input/10k_nums.txt | input/1M_nums.txt |
 |:--- | ---:| ---:| ---:|
-| funcA | 1.00 μs | 18.00 μs | 1249.00 μs |
-| funcB | 1.00 μs | 18.00 μs | 1836.00 μs |
-| funcC | 0 μs | 14.00 μs | 1417.00 μs |
-| funcD | 0 μs | 14.00 μs | 799.00 μs |
-| funcE | 1.00 μs | 18.00 μs | 1219.00 μs |
-| funcF | 0 μs | 15.00 μs | 665.00 μs |
-| funcG | 0 μs | 15.00 μs | 1168.00 μs |
-| funcH | 0 μs | 12.00 μs | 1180.00 μs |
-| funcI | 0 μs | 34.00 μs | 3159.00 μs |
+| funcA | 0 μs | 16.00 μs | 487.00 μs |
+| funcB | 0 μs | 9.00 μs | 699.00 μs |
+| funcC | 0 μs | 10.00 μs | 489.00 μs |
+| funcD | 0 μs | 10.00 μs | 352.00 μs |
+| funcE | 0 μs | 11.00 μs | 456.00 μs |
+| funcF | 0 μs | 10.00 μs | 345.00 μs |
+| funcG | 0 μs | 8.00 μs | 468.00 μs |
+| funcH | 0 μs | 6.00 μs | 465.00 μs |
+| funcI | 0 μs | 22.00 μs | 2091.00 μs |
 
 - ## Input Files - Run 100x Each
 
 | name | input/100_nums.txt | input/10k_nums.txt | input/1M_nums.txt |
 |:--- | ---:| ---:| ---:|
-| funcA | 0.01 μs | 12.23 μs | 1307.64 μs |
-| funcB | 1.00 μs | 17.17 μs | 2412.52 μs |
-| funcC | 0 μs | 13.30 μs | 1258.40 μs |
-| funcD | 0 μs | 33.63 μs | 3271.69 μs |
-| funcE | 0 μs | 36.18 μs | 3766.19 μs |
-| funcF | 0.01 μs | 36.04 μs | 3613.89 μs |
-| funcG | 0 μs | 35.21 μs | 3714.58 μs |
-| funcH | 0.01 μs | 35.11 μs | 3757.49 μs |
-| funcI | 0.42 μs | 32.77 μs | 3494.65 μs |
+| funcA | 0.01 μs | 5.12 μs | 553.54 μs |
+| funcB | 0 μs | 8.72 μs | 1406.53 μs |
+| funcC | 0 μs | 6.85 μs | 542.77 μs |
+| funcD | 0 μs | 11.81 μs | 1159.99 μs |
+| funcE | 0 μs | 21.05 μs | 2121.98 μs |
+| funcF | 0 μs | 14.16 μs | 1375.58 μs |
+| funcG | 0 μs | 21.02 μs | 2138.88 μs |
+| funcH | 0 μs | 21.30 μs | 2134.64 μs |
+| funcI | 0 μs | 20.05 μs | 2084.02 μs |
 
 - ## Input Files Sorted - Run 100x Each
 
 | name | input/100_nums.txt | input/10k_nums.txt | input/1M_nums.txt |
 |:--- | ---:| ---:| ---:|
-| funcA | 0.01 μs | 18.00 μs | 1122.91 μs |
-| funcB | 1.00 μs | 17.97 μs | 1756.84 μs |
-| funcC | 0 μs | 14.06 μs | 1324.73 μs |
-| funcD | 0 μs | 8.84 μs | 678.32 μs |
-| funcE | 0.01 μs | 12.52 μs | 1227.68 μs |
-| funcF | 0.01 μs | 8.54 μs | 689.60 μs |
-| funcG | 0 μs | 12.15 μs | 1221.19 μs |
-| funcH | 0 μs | 13.05 μs | 1197.38 μs |
-| funcI | 0 μs | 35.84 μs | 3203.73 μs |
+| funcA | 0.01 μs | 14.97 μs | 474.40 μs |
+| funcB | 0 μs | 9.15 μs | 697.87 μs |
+| funcC | 0 μs | 10.00 μs | 469.82 μs |
+| funcD | 0 μs | 4.13 μs | 346.24 μs |
+| funcE | 0 μs | 5.10 μs | 458.06 μs |
+| funcF | 0 μs | 4.09 μs | 346.53 μs |
+| funcG | 0 μs | 5.15 μs | 458.65 μs |
+| funcH | 0 μs | 5.00 μs | 462.79 μs |
+| funcI | 0 μs | 22.10 μs | 2077.07 μs |
 
 ## Learnings:
 
@@ -431,4 +432,5 @@ In summary, these are the functions with their descriptions:
 - Using a documentation syntax, like `markdown`, for the logs will make the result more presentable and easier to see and analyze.
 
 ## Conclusion:
+
 - Optimize both the data and the code to achieve better performance.

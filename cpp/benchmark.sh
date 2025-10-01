@@ -14,8 +14,8 @@ compile_options=(
     #'-std=c++11 -O3'  # build error
     '-std=c++17 -O0'
     '-std=c++17 -O3'
-    '-std=c++20 -O0'
-    '-std=c++20 -O3'
+    #'-std=c++20 -O0'
+    #'-std=c++20 -O3'
 )
 
 benchmark_titles=(
