@@ -23,8 +23,8 @@ benchmark_titles=(
     "Internal Test Data Sorted"
     "Input Files"
     "Input Files Sorted"
-    "Input Files - Iterated 100x"
-    "Input Files Sorted - Iterated 100x"
+    "Input Files - Run 100x Each"
+    "Input Files Sorted - Run 100x Each"
 )
 
 benchmark_options=(
